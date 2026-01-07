@@ -6,14 +6,16 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace CookBook.Services;
 
-public class ExceptionHandler : IExceptionHandler // Что тут вообще происходит. Разберись
+public class ExceptionHandler : IExceptionHandler
 {
-    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext, 
+        Exception exception, 
+        CancellationToken cancellationToken)
     {
         if (exception is RecipeNotFoundException recipeNotFoundException)
         {
             httpContext.Response.ContentType = MediaTypeNames.Text.Plain;
-
             httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
 
             await httpContext.Response.WriteAsync(recipeNotFoundException.Message);
@@ -23,7 +25,6 @@ public class ExceptionHandler : IExceptionHandler // Что тут вообще 
         else if (exception is RecipeIdDuplicateException recipeIdDuplicateException)
         {
             httpContext.Response.ContentType = MediaTypeNames.Text.Plain;
-
             httpContext.Response.StatusCode = (int)HttpStatusCode.Conflict;
 
             await httpContext.Response.WriteAsync(recipeIdDuplicateException.Message);
@@ -33,7 +34,6 @@ public class ExceptionHandler : IExceptionHandler // Что тут вообще 
         else if (exception is IngredientNotAllowedException ingredientNotAllowedException)
         {
             httpContext.Response.ContentType = MediaTypeNames.Text.Plain;
-
             httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
 
             await httpContext.Response.WriteAsync(ingredientNotAllowedException.Message);

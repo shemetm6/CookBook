@@ -5,46 +5,53 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CookBook.Controllers;
 
-[ApiController] // Зачем это здесь? Что конкретно делают атрибуты? Это какая то дополнительная настройка для типов?
-[Route("api/[controller]")] // Это мы так route указываем? Как в первом параметре у методов MapXXX?
-public class RecipeController : ControllerBase // Алексей в лекции наследовался от ControllerBase, а не Controller. В чем разница?
+[ApiController]
+[Route("cookbook/[controller]")]
+public class RecipeController : ControllerBase
 {
     private static readonly List<Recipe> _recipes = new List<Recipe>();
 
     [HttpPost]
-    public ActionResult<int> AddRecipe(string title, int cookTimeInMinutes, string ingredients, string descritption)
+    public ActionResult<int> AddRecipe(
+        string title, 
+        int cookTimeInMinutes, 
+        string ingredients, 
+        string descritption)
     {
-        var Id = GenerateRecipeIdAndThrowIfDuplicate();
+        var id = GenerateIdAndThrowIfDuplicate();
+
         _recipes.Add(new Recipe()
         {
-            Id = Id,
+            Id = id,
             Title = title.Trim(),
             CookTimeInMinutes = cookTimeInMinutes,
             Ingredients = TryParseIngredientsAndThrowIfNotAllowed(ingredients),
             Descritption = descritption.Trim()
         });
 
-        return Ok(Id);
+        return Ok(id);
     }
 
-    [HttpPatch("{id}")]
-    public ActionResult UpdateRecipe(int id,
-        string? title,
-        int? cookTimeInMinutes,
-        string? ingredients,
-        string? descritption)
+    // Если я захочу реализовать частичное изменение рецепта, то для этого использовать [HttpPatch("{id}")] ?
+    [HttpPut("{id}")]
+    public ActionResult UpdateRecipe(
+        int id,
+        string title,
+        int cookTimeInMinutes,
+        string ingredients,
+        string descritption)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(id);
 
-        recipe.Title = title?.Trim() ?? recipe.Title;
-        recipe.CookTimeInMinutes = cookTimeInMinutes ?? recipe.CookTimeInMinutes;
-        recipe.Ingredients = TryParseIngredientsAndThrowIfNotAllowed(ingredients) ?? recipe.Ingredients; // Разберись как убрать подчеркивание
-        recipe.Descritption = descritption?.Trim() ?? recipe.Descritption;
+        recipe.Title = title.Trim();
+        recipe.CookTimeInMinutes = cookTimeInMinutes;
+        recipe.Ingredients = TryParseIngredientsAndThrowIfNotAllowed(ingredients);
+        recipe.Descritption = descritption.Trim();
 
         return NoContent();
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id}/rating")]
     public ActionResult RateRecipe(int id, Raiting raiting)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(id);
@@ -80,7 +87,7 @@ public class RecipeController : ControllerBase // Алексей в лекции
         return recipe;
     }
 
-    private static int GenerateRecipeIdAndThrowIfDuplicate()
+    private static int GenerateIdAndThrowIfDuplicate()
     {
         var id = _recipes.Count;
 
@@ -90,7 +97,7 @@ public class RecipeController : ControllerBase // Алексей в лекции
         return id;
     }
 
-    static List<string> TryParseIngredientsAndThrowIfNotAllowed(string ingredientsInput)
+    private static List<string> TryParseIngredientsAndThrowIfNotAllowed(string ingredientsInput)
     {
         var ingredients = ingredientsInput
             .Split(',')
@@ -103,7 +110,7 @@ public class RecipeController : ControllerBase // Алексей в лекции
             .Where(i => !allowedList.Contains(i.ToLower()))
             .ToList();
 
-        if (invalidIngredients.Any())
+        if (invalidIngredients.Count != 0)
             throw new IngredientNotAllowedException(invalidIngredients);
 
         return ingredients;
