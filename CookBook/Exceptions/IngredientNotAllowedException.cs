@@ -4,8 +4,7 @@ namespace CookBook.Exceptions;
 
 public class IngredientNotAllowedException : Exception
 {
-    public IngredientNotAllowedException(List<string> invalidIngredients) : base(BuildMessage(invalidIngredients))
-    { }
+    public IngredientNotAllowedException(List<string> invalidIngredients) : base(BuildMessage(invalidIngredients)) { }
 
     private static string BuildMessage(List<string> invalidIngredients)
     {
