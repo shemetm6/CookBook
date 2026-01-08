@@ -9,42 +9,21 @@ namespace CookBook.Services;
 public class ExceptionHandler : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
-        HttpContext httpContext, 
-        Exception exception, 
+        HttpContext httpContext,
+        Exception exception,
         CancellationToken cancellationToken)
     {
-        if (exception is RecipeNotFoundException recipeNotFoundException)
+        httpContext.Response.StatusCode = exception switch
         {
-            httpContext.Response.ContentType = MediaTypeNames.Text.Plain;
-            httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            RecipeNotFoundException => (int)HttpStatusCode.NotFound,
+            RecipeIdDuplicateException => (int)HttpStatusCode.Conflict,
+            IngredientNotAllowedException => (int)HttpStatusCode.BadRequest,
+            TimeUnitNotAllowedException => (int)HttpStatusCode.BadRequest,
+            _ => (int)HttpStatusCode.InternalServerError,
+        };
 
-            await httpContext.Response.WriteAsync(recipeNotFoundException.Message);
+        await httpContext.Response.WriteAsync(exception.Message);
 
-            return true;
-        }
-        else if (exception is RecipeIdDuplicateException recipeIdDuplicateException)
-        {
-            httpContext.Response.ContentType = MediaTypeNames.Text.Plain;
-            httpContext.Response.StatusCode = (int)HttpStatusCode.Conflict;
-
-            await httpContext.Response.WriteAsync(recipeIdDuplicateException.Message);
-
-            return true;
-        }
-        else if (exception is IngredientNotAllowedException ingredientNotAllowedException)
-        {
-            httpContext.Response.ContentType = MediaTypeNames.Text.Plain;
-            httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-
-            await httpContext.Response.WriteAsync(ingredientNotAllowedException.Message);
-
-            return true;
-        }
-
-        httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        await httpContext.Response.WriteAsync(string.Empty);
-
-        return false;
+        return true;
     }
 }
