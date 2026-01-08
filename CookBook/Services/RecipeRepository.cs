@@ -66,9 +66,9 @@ public class RecipeRepository : IRecipeRepository
         _recipes.Remove(recipe);
     }
 
-    public IEnumerable<Recipe> GetRecipes() => _recipes;
+    public IReadOnlyList<Recipe> GetRecipes() => _recipes;
 
-    public Recipe? GetRecipe(int id) => TryGetRecipeAndThrowIfNotFound(id);
+    public Recipe GetRecipe(int id) => TryGetRecipeAndThrowIfNotFound(id);
 
     private Recipe TryGetRecipeAndThrowIfNotFound(int id)
     {

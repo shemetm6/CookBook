@@ -25,7 +25,7 @@ public interface IRecipeRepository
 
     public void DeleteRecipe(int id);
 
-    public IEnumerable<Recipe> GetRecipes();
+    public IReadOnlyList<Recipe> GetRecipes();
 
-    public Recipe? GetRecipe(int id);
+    public Recipe GetRecipe(int id);
 }
