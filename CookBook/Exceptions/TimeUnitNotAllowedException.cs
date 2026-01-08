@@ -4,8 +4,7 @@ namespace CookBook.Exceptions;
 
 public class TimeUnitNotAllowedException : Exception
 {
-    public TimeUnitNotAllowedException(TimeUnit invalidTimeUnit) : base(BuildMessage(invalidTimeUnit))
-    { }
+    public TimeUnitNotAllowedException(TimeUnit invalidTimeUnit) : base(BuildMessage(invalidTimeUnit)) { }
 
     private static string BuildMessage(TimeUnit invalidTimeUnit)
     {
