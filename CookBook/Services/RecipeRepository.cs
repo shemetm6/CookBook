@@ -14,7 +14,6 @@ public class RecipeRepository : IRecipeRepository
     // У меня эта иерархия выглядит по другому
     private readonly IIngredientInRecipeRepository _ingredientInRecipeRepository; 
 
-
     public RecipeRepository(
         ITimeConverter timeConverter, 
         IIngredientInRecipeRepository ingredientInRecipeRepository)
@@ -64,12 +63,11 @@ public class RecipeRepository : IRecipeRepository
         string descritption)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(recipeId);
+        var parsedIngredients = ParseIngredients(ingredients);
 
         recipe.Title = title;
         recipe.CookTime = _timeConverter.Convert(cookTime, timeUnit);
         recipe.Descritption = descritption;
-
-        var parsedIngredients = ParseIngredients(ingredients);
         recipe.Ingredients = _ingredientInRecipeRepository.AddIngredientsToRecipe(recipeId, parsedIngredients, quantity, units);
     }
 
@@ -92,16 +90,19 @@ public class RecipeRepository : IRecipeRepository
     private Recipe TryGetRecipeAndThrowIfNotFound(int id)
     {
         var recipe = _recipes.FirstOrDefault(r => r.Id == id);
+
         if (recipe is null)
             throw new RecipeNotFoundException(id);
+
         return recipe;
     }
 
     private static List<int> ParseIngredients(string ingredientsInput)
     {
         return ingredientsInput
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(i => int.Parse(i.Trim()))
+            .Split(',')
+            .Select(i => i.Trim())
+            .Select(i => int.Parse(i))
             .ToList();
     }
 }
