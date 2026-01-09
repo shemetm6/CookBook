@@ -21,9 +21,11 @@ public class RecipeController : ControllerBase
         double cookTime,
         TimeUnit timeUnit,
         string ingredients,
+        double quantity,
+        QuantityUnit units,
         string descritption)
     {
-        var id = _recipeRepository.AddRecipe(title.Trim(), cookTime, timeUnit, ingredients, descritption.Trim());
+        var id = _recipeRepository.AddRecipe(title.Trim(), cookTime, timeUnit, ingredients, quantity, units, descritption.Trim());
 
         return Ok(id);
     }
@@ -35,9 +37,11 @@ public class RecipeController : ControllerBase
         double cookTime,
         TimeUnit timeUnit,
         string ingredients,
+        double quantity,
+        QuantityUnit units,
         string descritption)
     {
-        _recipeRepository.UpdateRecipe(id, title.Trim(), cookTime, timeUnit, ingredients, descritption.Trim());
+        _recipeRepository.UpdateRecipe(id, title.Trim(), cookTime, timeUnit, ingredients, quantity, units, descritption.Trim());
 
         return NoContent();
     }
@@ -59,10 +63,10 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Recipe>> GetRecipes() 
+    public ActionResult<List<Recipe>> GetRecipes()
         => Ok(_recipeRepository.GetRecipes());
 
     [HttpGet("{id}")]
-    public ActionResult<Recipe> GetRecipe(int id) 
+    public ActionResult<Recipe> GetRecipe(int id)
         => Ok(_recipeRepository.GetRecipe(id));
 }

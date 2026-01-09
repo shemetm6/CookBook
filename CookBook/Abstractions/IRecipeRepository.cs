@@ -11,14 +11,18 @@ public interface IRecipeRepository
         double cookTime,
         TimeUnit timeUnit,
         string ingredients,
+        double quantity,
+        QuantityUnit units,
         string descritption);
 
     public void UpdateRecipe(
-        int id,
+        int recipeId,
         string title,
         double cookTime,
         TimeUnit timeUnit,
         string ingredients,
+        double quantity,
+        QuantityUnit units,
         string descritption);
 
     public void RateRecipe(int id, Raiting raiting);

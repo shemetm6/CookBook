@@ -9,27 +9,45 @@ namespace CookBook.Services;
 public class RecipeRepository : IRecipeRepository
 {
     private readonly List<Recipe> _recipes = new();
-
     private readonly ITimeConverter _timeConverter;
+    // Вот на этом моменте вероятно что-то пошло не так, потому что ты писал, что IngredientInRecipeRepository должен хранить остальные два репозитория
+    // У меня эта иерархия выглядит по другому
+    private readonly IIngredientInRecipeRepository _ingredientInRecipeRepository; 
 
-    public RecipeRepository(ITimeConverter timeConverter)
-        => _timeConverter = timeConverter;
 
+    public RecipeRepository(
+        ITimeConverter timeConverter, 
+        IIngredientInRecipeRepository ingredientInRecipeRepository, 
+        IIngredientRepository ingredientRepository)
+    {
+        _timeConverter = timeConverter;
+        _ingredientInRecipeRepository = ingredientInRecipeRepository;
+    }
+
+    // (!) У меня одно количество и единицы измерения для всех ингредиентов
+    // И 0 идей как это исправить.
+    // Как ты писал, при создании рецепта должно произойти следущее: "У пользователя открылась форма поверх рецепта, в которую он ввел инфу об ингредиенте"
+    // Я такого в сваггере еще не видел и как реализовывать тоже хз
+    // Чатгпт говорит про dto
     public int AddRecipe(
         string title,
         double cookTime,
         TimeUnit timeUnit,
-        string ingredients,
+        string ingredientIds,
+        double quantity,
+        QuantityUnit units,
         string descritption)
     {
-        var recipeId = GenerateIdAndThrowIfDuplicate();
+        var recipeId = _recipes.Count;
+        var parsedIngredients = ParseIngredients(ingredientIds);
+        var ingredientInRecipeList= _ingredientInRecipeRepository.AddIngredientsToRecipe(recipeId, parsedIngredients, quantity, units);
 
-        _recipes.Add(new Recipe()
+        _recipes.Add(new Recipe
         {
             Id = recipeId,
             Title = title,
             CookTime = _timeConverter.Convert(cookTime, timeUnit),
-            Ingredients = TryParseIngredientsAndThrowIfNotAllowed(ingredients),
+            Ingredients = ingredientInRecipeList,
             Descritption = descritption
         });
 
@@ -37,32 +55,34 @@ public class RecipeRepository : IRecipeRepository
     }
 
     public void UpdateRecipe(
-        int id,
+        int recipeId,
         string title,
         double cookTime,
         TimeUnit timeUnit,
         string ingredients,
+        double quantity,
+        QuantityUnit units,
         string descritption)
     {
-        var recipe = TryGetRecipeAndThrowIfNotFound(id);
+        var recipe = TryGetRecipeAndThrowIfNotFound(recipeId);
 
         recipe.Title = title;
         recipe.CookTime = _timeConverter.Convert(cookTime, timeUnit);
-        recipe.Ingredients = TryParseIngredientsAndThrowIfNotAllowed(ingredients);
         recipe.Descritption = descritption;
+
+        var parsedIngredients = ParseIngredients(ingredients);
+        recipe.Ingredients = _ingredientInRecipeRepository.AddIngredientsToRecipe(recipeId, parsedIngredients, quantity, units);
     }
 
     public void RateRecipe(int id, Raiting raiting)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(id);
-
-        recipe.Raiting = raiting;
+        recipe.Raitings.Add((int)raiting);
     }
 
     public void DeleteRecipe(int id)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(id);
-
         _recipes.Remove(recipe);
     }
 
@@ -73,39 +93,16 @@ public class RecipeRepository : IRecipeRepository
     private Recipe TryGetRecipeAndThrowIfNotFound(int id)
     {
         var recipe = _recipes.FirstOrDefault(r => r.Id == id);
-
         if (recipe is null)
             throw new RecipeNotFoundException(id);
-
         return recipe;
     }
 
-    private int GenerateIdAndThrowIfDuplicate()
+    private static List<int> ParseIngredients(string ingredientsInput)
     {
-        var id = _recipes.Count;
-
-        if (_recipes.Any(r => r.Id == id))
-            throw new RecipeIdDuplicateException(id);
-
-        return id;
-    }
-
-    private static List<string> TryParseIngredientsAndThrowIfNotAllowed(string ingredientsInput)
-    {
-        var ingredients = ingredientsInput
-            .Split(',')
-            .Select(i => i.Trim())
+        return ingredientsInput
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(i => int.Parse(i.Trim()))
             .ToList();
-
-        var allowedList = Enum.GetNames<AllowedIngredients>().Select(i => i.ToLower());
-
-        var invalidIngredients = ingredients
-            .Where(i => !allowedList.Contains(i.ToLower()))
-            .ToList();
-
-        if (invalidIngredients.Count != 0)
-            throw new IngredientNotAllowedException(invalidIngredients);
-
-        return ingredients;
     }
 }
