@@ -17,8 +17,7 @@ public class RecipeRepository : IRecipeRepository
 
     public RecipeRepository(
         ITimeConverter timeConverter, 
-        IIngredientInRecipeRepository ingredientInRecipeRepository, 
-        IIngredientRepository ingredientRepository)
+        IIngredientInRecipeRepository ingredientInRecipeRepository)
     {
         _timeConverter = timeConverter;
         _ingredientInRecipeRepository = ingredientInRecipeRepository;
