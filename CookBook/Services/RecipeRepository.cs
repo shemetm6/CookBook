@@ -22,30 +22,30 @@ public class RecipeRepository : IRecipeRepository
         _ingredientInRecipeRepository = ingredientInRecipeRepository;
     }
 
-    // (!) У меня одно количество и единицы измерения для всех ингредиентов
-    // И 0 идей как это исправить.
-    // Как ты писал, при создании рецепта должно произойти следущее: "У пользователя открылась форма поверх рецепта, в которую он ввел инфу об ингредиенте"
-    // Я такого в сваггере еще не видел и как реализовывать тоже хз
-    // Чатгпт говорит про dto
+    // Кароуч. Я пробовал передавать ingredientIds строкой.
+    // Из плюсов: объект IngredientInRecipe создавался в соответствующем репозитории. Из минусов ед. измерения были одни на весь список ингредиентов.
+    // Чатгпт посоветовал перекатиться на dto. Попробовал. Увидел, что ВЕСЬ запрос теперь передается в request body. Не оценил
+    // Понял, что можно передать список ингредиентов в теле запроса.
+    // Из минусов: их дохуя. Плохо, что пользователь сам ручками создает объект, наверное это должно происходить в соответствующем репозитории
+    // Плохо, что я не могу выкинуть кастомное исключение при ошибке в timeUnit. Даже, если выбросить исключение в котроллере, 400ка меня обгоняет
+    // Плохо, что я породил такое чудовище как HandleIngredientInRecipeList, его реально можно переименовывать в DoCoolThings, делает всё и сразу.
+    // Из плюсов: мне нравится форма для создания рецепта в сваггере. Всё что возможно пишется в полях, а список ингредиентов в теле запроса
     public int AddRecipe(
         string title,
         double cookTime,
         TimeUnit timeUnit,
-        string ingredientIds,
-        double quantity,
-        QuantityUnit units,
+        List<IngredientInRecipe> ingredients,
         string descritption)
     {
         var recipeId = _recipes.Count;
-        var parsedIngredients = ParseIngredients(ingredientIds);
-        var ingredientInRecipeList= _ingredientInRecipeRepository.AddIngredientsToRecipe(recipeId, parsedIngredients, quantity, units);
+        var ingredientInRecipeList= _ingredientInRecipeRepository.HandleIngredientInRecipeList(recipeId, ingredients);
 
         _recipes.Add(new Recipe
         {
             Id = recipeId,
             Title = title,
             CookTime = _timeConverter.Convert(cookTime, timeUnit),
-            Ingredients = ingredientInRecipeList,
+            Ingredients = ingredients,
             Descritption = descritption
         });
 
@@ -57,18 +57,16 @@ public class RecipeRepository : IRecipeRepository
         string title,
         double cookTime,
         TimeUnit timeUnit,
-        string ingredients,
-        double quantity,
-        QuantityUnit units,
+        List<IngredientInRecipe> ingredients,
         string descritption)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(recipeId);
-        var parsedIngredients = ParseIngredients(ingredients);
+        var ingredientInRecipeList = _ingredientInRecipeRepository.HandleIngredientInRecipeList(recipeId, ingredients);
 
         recipe.Title = title;
         recipe.CookTime = _timeConverter.Convert(cookTime, timeUnit);
         recipe.Descritption = descritption;
-        recipe.Ingredients = _ingredientInRecipeRepository.AddIngredientsToRecipe(recipeId, parsedIngredients, quantity, units);
+        recipe.Ingredients = _ingredientInRecipeRepository.HandleIngredientInRecipeList(recipeId, ingredients);
     }
 
     public void RateRecipe(int id, Raiting raiting)
@@ -95,14 +93,5 @@ public class RecipeRepository : IRecipeRepository
             throw new RecipeNotFoundException(id);
 
         return recipe;
-    }
-
-    private static List<int> ParseIngredients(string ingredientsInput)
-    {
-        return ingredientsInput
-            .Split(',')
-            .Select(i => i.Trim())
-            .Select(i => int.Parse(i))
-            .ToList();
     }
 }

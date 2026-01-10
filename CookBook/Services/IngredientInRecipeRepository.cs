@@ -2,6 +2,7 @@
 using CookBook.Enums;
 using CookBook.Exceptions;
 using CookBook.Models;
+using System.Net.NetworkInformation;
 
 namespace CookBook.Services;
 
@@ -15,41 +16,33 @@ public class IngredientInRecipeRepository : IIngredientInRecipeRepository
         _ingredientRepository = ingredientRepository;
     }
 
-    public List<IngredientInRecipe> AddIngredientsToRecipe(
+    // Ужасный метод, пока думаю как подправить. Можно разбить на Validate и приватный SaveToRepositories,
+    // но он всё равно будет присваивать recipeId, что не вписывается ни в один из вышеперечисленных методов
+    public List<IngredientInRecipe> HandleIngredientInRecipeList(
         int recipeId,
-        List<int> ingredientIds,
-        double quantity,
-        QuantityUnit units)
+        List<IngredientInRecipe> ingredientsInRecipeList)
     {
-        ThrowIfIngredientsNotAllowed(ingredientIds);
+        ThrowIfIngredientsNotAllowed(ingredientsInRecipeList);
 
-        var ingredients = new List<IngredientInRecipe>();
-
-        foreach (var id in ingredientIds)
+        foreach (var ingredientInRecipe in ingredientsInRecipeList)
         {
-            var ingridientInRecipe = new IngredientInRecipe
-            {
-                IgredientId = id,
-                RecipeId = recipeId,
-                Quantity = quantity,
-                Units = units
-            };
-            ingredients.Add(ingridientInRecipe);
-            _ingredientInRecipe.Add(ingridientInRecipe);
-            _ingredientRepository.AddRecipeToIngredient(ingridientInRecipe); // (!)Не уверен. Писал об этом в Ingredient.cs
+            ingredientInRecipe.SetRecipeId(recipeId);
+            _ingredientInRecipe.Add(ingredientInRecipe);
+            _ingredientRepository.AddRecipeToIngredient(ingredientInRecipe);
         }
 
-        return ingredients;
+        return ingredientsInRecipeList;
     }
 
-    private void ThrowIfIngredientsNotAllowed(List<int> ingredientIds)
+    private void ThrowIfIngredientsNotAllowed(List<IngredientInRecipe> ingredientsInRecipeList)
     {
         var allowedIngredientIds = _ingredientRepository
             .GetIngredients()
             .Select(i => i.Id)
             .ToList();
 
-        var invalidIngredientIds = ingredientIds
+        var invalidIngredientIds = ingredientsInRecipeList
+            .Select(i => i.IgredientId)
             .Where(i => !allowedIngredientIds.Contains(i))
             .ToList();
 

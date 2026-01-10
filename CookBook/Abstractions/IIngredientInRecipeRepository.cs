@@ -5,9 +5,7 @@ namespace CookBook.Abstractions;
 
 public interface IIngredientInRecipeRepository
 {
-    public List<IngredientInRecipe> AddIngredientsToRecipe(
-    int recipeId,
-    List<int> ingredientIds,
-    double quantity,
-    QuantityUnit units);
+    public List<IngredientInRecipe> HandleIngredientInRecipeList(
+        int recipeId,
+        List<IngredientInRecipe> ingredientsInRecipeList);
 }

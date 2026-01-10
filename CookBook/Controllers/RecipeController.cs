@@ -20,12 +20,10 @@ public class RecipeController : ControllerBase
         string title,
         double cookTime,
         TimeUnit timeUnit,
-        string ingredients,
-        double quantity,
-        QuantityUnit units,
+        [FromBody] List<IngredientInRecipe> ingredients,
         string descritption)
     {
-        var id = _recipeRepository.AddRecipe(title.Trim(), cookTime, timeUnit, ingredients, quantity, units, descritption.Trim());
+        var id = _recipeRepository.AddRecipe(title.Trim(), cookTime, timeUnit, ingredients, descritption.Trim());
 
         return Ok(id);
     }
@@ -36,12 +34,10 @@ public class RecipeController : ControllerBase
         string title,
         double cookTime,
         TimeUnit timeUnit,
-        string ingredients,
-        double quantity,
-        QuantityUnit units,
+        [FromBody] List<IngredientInRecipe> ingredients,
         string descritption)
     {
-        _recipeRepository.UpdateRecipe(id, title.Trim(), cookTime, timeUnit, ingredients, quantity, units, descritption.Trim());
+        _recipeRepository.UpdateRecipe(id, title.Trim(), cookTime, timeUnit, ingredients, descritption.Trim());
 
         return NoContent();
     }
