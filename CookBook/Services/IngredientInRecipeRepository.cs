@@ -22,6 +22,9 @@ public class IngredientInRecipeRepository : IIngredientInRecipeRepository
         var ingredient = _ingredientRepository.GetIngredient(ingredientInRecipe.IngredientId);
         var recipe = _recipeRepository.GetRecipe(ingredientInRecipe.RecipeId);
 
+        ingredientInRecipe.Recipe = recipe;
+        ingredientInRecipe.Ingredient = ingredient;
+
         ingredient.Recipes.Add(ingredientInRecipe);
         recipe.Ingredients.Add(ingredientInRecipe);
     }
@@ -31,13 +34,14 @@ public class IngredientInRecipeRepository : IIngredientInRecipeRepository
         var ingredient = _ingredientRepository.GetIngredient(ingredientInRecipe.IngredientId);
         var recipe = _recipeRepository.GetRecipe(ingredientInRecipe.RecipeId);
 
-        var toRemoveInIngredient = ingredient.Recipes.First(
+        var toRemoveInIngredient = ingredient.Recipes.FirstOrDefault(
             i => i.IngredientId == ingredientInRecipe.IngredientId && i.RecipeId == ingredientInRecipe.RecipeId);
-        var toRemoveInRecipe = recipe.Ingredients.First(
+        var toRemoveInRecipe = recipe.Ingredients.FirstOrDefault(
             r => r.IngredientId == ingredientInRecipe.IngredientId && r.RecipeId == ingredientInRecipe.RecipeId);
 
-        ingredient.Recipes.Remove(toRemoveInIngredient);
-        recipe.Ingredients.Remove(toRemoveInRecipe);
+        if (toRemoveInIngredient != null) ingredient.Recipes.Remove(toRemoveInIngredient);
+        if (toRemoveInRecipe != null) recipe.Ingredients.Remove(toRemoveInRecipe);
     }
+
 }
 

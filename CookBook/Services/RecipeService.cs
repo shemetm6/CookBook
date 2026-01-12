@@ -22,19 +22,17 @@ public class RecipeService : IRecipeService
     }
 
     public int AddRecipe(
-        string title,
-        double cookTime,
-        TimeUnit timeUnit,
-        string descritption,
-        List<IngredientInRecipe> ingredients
-    )
+    string title,
+    double cookTime,
+    TimeUnit timeUnit,
+    string descritption,
+    List<IngredientInRecipe> ingredients
+)
     {
-        // Добавлено, чтобы выбросить исключение при вводе некорретного Id ингредиента
-        // В противном случае рецепт создавался без ингредиентов, если был введен id несуществующего ингредиента
-        // (а точнее с теми ингредиентами, которые были перечислены по порядку ДО несуществующего)
         EnsureIngredientsExist(ingredients);
 
         var recipeId = _recipeRepository.AddRecipe(title, cookTime, timeUnit, descritption);
+
         foreach (var ingredient in ingredients)
         {
             ingredient.RecipeId = recipeId;
@@ -44,36 +42,39 @@ public class RecipeService : IRecipeService
         return recipeId;
     }
 
+
     public void UpdateRecipe(
-        int recipeId,
-        string title,
-        double cookTime,
-        TimeUnit timeUnit,
-        string descritption,
-        List<IngredientInRecipe> ingredients
-    )
+    int recipeId,
+    string title,
+    double cookTime,
+    TimeUnit timeUnit,
+    string descritption,
+    List<IngredientInRecipe> ingredients
+)
     {
-        // Аналогично методу AddRecipe
         EnsureIngredientsExist(ingredients);
 
         _recipeRepository.UpdateRecipe(recipeId, title, cookTime, timeUnit, descritption);
 
         var recipe = _recipeRepository.GetRecipe(recipeId);
-        foreach (var ingredient in recipe.Ingredients)
+
+        foreach (var ingredient in recipe.Ingredients.ToList())
         {
             _ingredientInRecipeRepository.RemoveIngredientFromRecipe(ingredient);
         }
 
         foreach (var ingredient in ingredients)
         {
+            ingredient.RecipeId = recipeId;
             _ingredientInRecipeRepository.AttachIngredientToRecipe(ingredient);
         }
     }
 
+
     public void DeleteRecipe(int id)
     {
         var recipe = _recipeRepository.GetRecipe(id);
-        foreach (var ingredient in recipe.Ingredients)
+        foreach (var ingredient in recipe.Ingredients.ToList())
         {
             _ingredientInRecipeRepository.RemoveIngredientFromRecipe(ingredient);
         }
