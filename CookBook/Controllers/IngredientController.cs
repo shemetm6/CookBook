@@ -1,7 +1,5 @@
 ﻿using CookBook.Abstractions;
-using CookBook.Enums;
 using CookBook.Models;
-using CookBook.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CookBook.Controllers;
@@ -16,7 +14,7 @@ public class IngredientController : ControllerBase
         => _ingredientRepository = ingredientRepository;
 
     [HttpPost]
-    public ActionResult<int> AddRecipe(string name)
+    public ActionResult<int> CreateIngredient(string name)
     {
         var ingredientId = _ingredientRepository.AddIngredient(name.Trim());
 

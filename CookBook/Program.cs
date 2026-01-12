@@ -1,9 +1,5 @@
 using CookBook.Abstractions;
-using CookBook.Models;
 using CookBook.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +18,7 @@ builder.Services.AddSingleton<ITimeConverter, TimeConverter>();
 builder.Services.AddSingleton<IIngredientRepository, IngredientRepository>();
 builder.Services.AddSingleton<IIngredientInRecipeRepository, IngredientInRecipeRepository>();
 builder.Services.AddSingleton<IRecipeRepository, RecipeRepository>();
+builder.Services.AddSingleton<IRecipeService, RecipeService>();
 
 var app = builder.Build();
 

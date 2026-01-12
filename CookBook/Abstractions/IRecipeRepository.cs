@@ -7,19 +7,19 @@ namespace CookBook.Abstractions;
 public interface IRecipeRepository
 {
     public int AddRecipe(
-            string title,
-            double cookTime,
-            TimeUnit timeUnit,
-            List<IngredientInRecipe> ingredients,
-            string descritption);
+        string title,
+        double cookTime,
+        TimeUnit timeUnit,
+        string descritption
+    );
 
     public void UpdateRecipe(
         int recipeId,
         string title,
         double cookTime,
         TimeUnit timeUnit,
-        List<IngredientInRecipe> ingredients,
-        string descritption);
+        string descritption
+    );
 
     public void RateRecipe(int id, Raiting raiting);
 

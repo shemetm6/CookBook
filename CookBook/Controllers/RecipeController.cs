@@ -1,9 +1,7 @@
 ﻿using CookBook.Enums;
 using CookBook.Models;
-using CookBook.Exceptions;
 using CookBook.Abstractions;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 
 namespace CookBook.Controllers;
 
@@ -11,9 +9,9 @@ namespace CookBook.Controllers;
 [Route("api/[controller]")]
 public class RecipeController : ControllerBase
 {
-    private readonly IRecipeRepository _recipeRepository;
-    public RecipeController(IRecipeRepository recipeRepository)
-        => _recipeRepository = recipeRepository;
+    private readonly IRecipeService _recipeService;
+    public RecipeController(IRecipeService recipeRepository)
+        => _recipeService = recipeRepository;
 
     [HttpPost]
     public ActionResult<int> AddRecipe(
@@ -23,7 +21,7 @@ public class RecipeController : ControllerBase
         [FromBody] List<IngredientInRecipe> ingredients,
         string descritption)
     {
-        var id = _recipeRepository.AddRecipe(title.Trim(), cookTime, timeUnit, ingredients, descritption.Trim());
+        var id = _recipeService.AddRecipe(title.Trim(), cookTime, timeUnit, descritption.Trim(), ingredients);
 
         return Ok(id);
     }
@@ -37,7 +35,7 @@ public class RecipeController : ControllerBase
         [FromBody] List<IngredientInRecipe> ingredients,
         string descritption)
     {
-        _recipeRepository.UpdateRecipe(id, title.Trim(), cookTime, timeUnit, ingredients, descritption.Trim());
+        _recipeService.UpdateRecipe(id, title.Trim(), cookTime, timeUnit, descritption.Trim(), ingredients);
 
         return NoContent();
     }
@@ -45,7 +43,7 @@ public class RecipeController : ControllerBase
     [HttpPut("{id}/rating")]
     public ActionResult RateRecipe(int id, Raiting raiting)
     {
-        _recipeRepository.RateRecipe(id, raiting);
+        _recipeService.RateRecipe(id, raiting);
 
         return NoContent();
     }
@@ -53,16 +51,16 @@ public class RecipeController : ControllerBase
     [HttpDelete("{id}")]
     public ActionResult DeleteRecipe(int id)
     {
-        _recipeRepository.DeleteRecipe(id);
+        _recipeService.DeleteRecipe(id);
 
         return NoContent();
     }
 
     [HttpGet]
     public ActionResult<List<Recipe>> GetRecipes()
-        => Ok(_recipeRepository.GetRecipes());
+        => Ok(_recipeService.GetRecipes());
 
     [HttpGet("{id}")]
     public ActionResult<Recipe> GetRecipe(int id)
-        => Ok(_recipeRepository.GetRecipe(id));
+        => Ok(_recipeService.GetRecipe(id));
 }

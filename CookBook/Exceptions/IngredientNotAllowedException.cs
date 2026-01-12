@@ -1,18 +1,22 @@
 ﻿using CookBook.Enums;
+using CookBook.Models;
 
 namespace CookBook.Exceptions;
 
 public class IngredientNotAllowedException : Exception
 {
-    public IngredientNotAllowedException(List<int> invalidIngredients, List<int> allowedIngredients)
-        : base(BuildMessage(invalidIngredients, allowedIngredients)) { }
+    public IngredientNotAllowedException(int ingredientId, List<Ingredient> allowedIngredients)
+        : base(BuildMessage(ingredientId, allowedIngredients)) { }
 
-    private static string BuildMessage(List<int> invalidIngredients, List<int> allowedIngredients)
+    private static string BuildMessage(int invalidIngredientId, List<Ingredient> allowedIngredients)
     {
-        var invalid = string.Join(", ", invalidIngredients);
-        var allowed = string.Join(", ", allowedIngredients);
+        var allowedIngredientsIds = string.Join(", ", allowedIngredients.Select(i => i.Id).ToList());
 
-        return $"Ingredients with following IDs are not allowed: {invalid}.\n" +
-               $"List of available ingredient IDs: {allowed}.";
+        if (allowedIngredients.Count == 0)
+            return $"No ingredients available!\n" +
+                   $"Create ingredients before creating recipe.";
+
+        return $"Ingredient with id = {invalidIngredientId} are not allowed!\n" +
+               $"List of available ingredient IDs: {allowedIngredientsIds}.";
     }
 }

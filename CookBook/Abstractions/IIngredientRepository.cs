@@ -5,6 +5,6 @@ namespace CookBook.Abstractions;
 public interface IIngredientRepository
 {
     public int AddIngredient(string name);
-    public void AddRecipeToIngredient(IngredientInRecipe ingredientInRecipe);
+    public Ingredient GetIngredient(int id);
     public IReadOnlyList<Ingredient> GetIngredients();
 }

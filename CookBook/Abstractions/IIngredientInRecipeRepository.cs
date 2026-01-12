@@ -1,11 +1,9 @@
-﻿using CookBook.Enums;
-using CookBook.Models;
+﻿using CookBook.Models;
 
 namespace CookBook.Abstractions;
 
 public interface IIngredientInRecipeRepository
 {
-    public List<IngredientInRecipe> HandleIngredientInRecipeList(
-        int recipeId,
-        List<IngredientInRecipe> ingredientsInRecipeList);
+    public void AttachIngredientToRecipe(IngredientInRecipe ingredientInRecipe);
+    public void RemoveIngredientFromRecipe(IngredientInRecipe ingredientInRecipe);
 }

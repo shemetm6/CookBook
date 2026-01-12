@@ -7,7 +7,7 @@ namespace CookBook.Services;
 
 public class IngredientRepository : IIngredientRepository
 {
-    private readonly List<Ingredient> _ingredients = new();
+    private readonly List<Ingredient> _ingredients = [];
 
     public int AddIngredient(string name)
     {
@@ -22,12 +22,12 @@ public class IngredientRepository : IIngredientRepository
         return ingredientId;
     }
 
-    public void AddRecipeToIngredient(IngredientInRecipe ingredientInRecipe)
+    public Ingredient GetIngredient(int id) 
     {
-        var ingredient = _ingredients.First(i => i.Id == ingredientInRecipe.IgredientId);
-        ingredient.Recipes.Add(ingredientInRecipe);
+        var ingredient = _ingredients.FirstOrDefault(i => i.Id == id);
+
+        return ingredient ?? throw new IngredientNotAllowedException(id, _ingredients);
     }
 
     public IReadOnlyList<Ingredient> GetIngredients() => _ingredients;
-
 }
