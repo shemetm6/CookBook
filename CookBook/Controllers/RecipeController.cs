@@ -1,6 +1,4 @@
 ﻿using CookBook.Abstractions;
-using CookBook.Contracts;
-using CookBook.Enums;
 using CookBook.Models;
 using Microsoft.AspNetCore.Mvc;
 using static CookBook.Contracts.Recipe;
@@ -56,7 +54,7 @@ public class RecipeController : ControllerBase
         return NoContent();
     }
 
-    [HttpPut("{id}/rating")]
+    [HttpPut("{id}/raiting")]
     public ActionResult RateRecipe(int id, RateRecipeDto dto)
     {
         _recipeService.RateRecipe(id, dto.Raiting);
@@ -77,8 +75,17 @@ public class RecipeController : ControllerBase
     {
         var recipes = _recipeService.GetRecipes();
 
+
         var listOfRecipes = new ListOfRecipes(recipes
-            .Select(r => new RecipesListVm(r.Id, r.Title))
+            .Select(recipe =>
+            {
+                double? averageRaiting = null;
+
+                if (recipe.Raitings.Count > 0)
+                    averageRaiting = recipe.Raitings.Average();
+
+                return new RecipesListVm(recipe.Id, recipe.Title, averageRaiting);
+            })
             .ToList());
 
         return Ok(listOfRecipes);

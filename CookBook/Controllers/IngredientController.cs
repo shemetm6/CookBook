@@ -1,5 +1,4 @@
 ﻿using CookBook.Abstractions;
-using CookBook.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using static CookBook.Contracts.Ingredient;
 
@@ -18,7 +17,7 @@ public class IngredientController : ControllerBase
     [HttpPost]
     public ActionResult<int> CreateIngredient(CreateIngredientDto dto)
     {
-        var ingredientId = _ingredientRepository.AddIngredient(dto.Name.Trim());
+        var ingredientId = _ingredientRepository.AddIngredient(dto);
 
         return Ok(ingredientId);
     }
@@ -28,13 +27,6 @@ public class IngredientController : ControllerBase
     {
         var ingredients = _ingredientRepository.GetIngredients();
 
-        var ingredientVms = ingredients
-            .Select(i => new IngredientListVm(
-                i.Id,
-                i.Name,
-                i.Recipes.Select(r => new RecipeInIngredientVm(r.RecipeId, r.Recipe!.Title)).ToList()))
-            .ToList();
-
-        return Ok(new ListOfIngredients(ingredientVms));
+        return Ok(ingredients);
     }
 }

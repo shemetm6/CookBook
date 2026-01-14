@@ -1,10 +1,10 @@
-﻿using CookBook.Models;
+﻿using static CookBook.Contracts.Ingredient;
 
 namespace CookBook.Abstractions;
 
 public interface IIngredientRepository
 {
-    public int AddIngredient(string name);
-    public Ingredient GetIngredient(int id);
-    public IReadOnlyList<Ingredient> GetIngredients();
+    int AddIngredient(CreateIngredientDto dto);
+    Models.Ingredient GetIngredient(int id); //(!) пока не использую здесь Vm. Подумой, что должно передаваться во внутренней логике - объект или объектvm. А лучше сделай get метод
+    ListOfIngredients GetIngredients();
 }

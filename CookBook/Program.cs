@@ -1,24 +1,11 @@
-using CookBook.Abstractions;
-using CookBook.Services;
-using System.Text.Json.Serialization;
+using CookBook;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
-
-builder.Services.AddExceptionHandler<ExceptionHandler>();
-
-builder.Services.AddSingleton<ITimeConverter, TimeConverter>();
-builder.Services.AddSingleton<IIngredientRepository, IngredientRepository>();
-builder.Services.AddSingleton<IIngredientInRecipeRepository, IngredientInRecipeRepository>();
-builder.Services.AddSingleton<IRecipeRepository, RecipeRepository>();
-builder.Services.AddSingleton<IRecipeService, RecipeService>();
+builder.Services
+    .AddInfrastructure()
+    .AddSwagger()
+    .AddApplicationServices();
 
 var app = builder.Build();
 

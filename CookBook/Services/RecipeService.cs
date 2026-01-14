@@ -29,6 +29,8 @@ public class RecipeService : IRecipeService
     List<IngredientInRecipe> ingredients
 )
     {
+        // Без этой проверки не выбрасывалось исключение при добавлении ингредиента с некорректным Id
+        // В результать получал 500ку, а рецепт всё равно создавался
         EnsureIngredientsExist(ingredients);
 
         var recipeId = _recipeRepository.AddRecipe(title, cookTime, timeUnit, descritption);
@@ -41,7 +43,6 @@ public class RecipeService : IRecipeService
 
         return recipeId;
     }
-
 
     public void UpdateRecipe(
     int recipeId,
@@ -58,6 +59,9 @@ public class RecipeService : IRecipeService
 
         var recipe = _recipeRepository.GetRecipe(recipeId);
 
+        // Было foreach (var ingredient in recipe.Ingredients)
+        // Из-за чего изменялась та коллекция, которую мы перебираем
+        // В следствии чего не работал UpdateRecipe и DeleteRecipe
         foreach (var ingredient in recipe.Ingredients.ToList())
         {
             _ingredientInRecipeRepository.RemoveIngredientFromRecipe(ingredient);
@@ -70,10 +74,10 @@ public class RecipeService : IRecipeService
         }
     }
 
-
     public void DeleteRecipe(int id)
     {
         var recipe = _recipeRepository.GetRecipe(id);
+
         foreach (var ingredient in recipe.Ingredients.ToList())
         {
             _ingredientInRecipeRepository.RemoveIngredientFromRecipe(ingredient);

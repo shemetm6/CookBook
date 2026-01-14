@@ -1,5 +1,4 @@
 ﻿using CookBook.Enums;
-using CookBook.Exceptions;
 using CookBook.Models;
 
 namespace CookBook.Abstractions;

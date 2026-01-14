@@ -1,5 +1,4 @@
-﻿using CookBook.Enums;
-using CookBook.Models;
+﻿using CookBook.Models;
 
 namespace CookBook.Exceptions;
 

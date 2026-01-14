@@ -16,14 +16,14 @@ public class Recipe
         int IngredientId, 
         string IngredientTitle,
         double Quantity, 
-        QuantityUnit Units);
+        QuantityUnit? Units);
 
     public record IngredientInRecipeCreateVm(
         int IngredientId,
         double Quantity,
-        QuantityUnit Units);
+        QuantityUnit? Units);
 
-    public record RecipesListVm(int Id, string Title);
+    public record RecipesListVm(int Id, string Title, double? AverageRating);
 
     public record ListOfRecipes(List<RecipesListVm> Recipes);
 

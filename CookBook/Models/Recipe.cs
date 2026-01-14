@@ -1,6 +1,4 @@
-﻿using CookBook.Enums;
-
-namespace CookBook.Models;
+﻿namespace CookBook.Models;
 
 public class Recipe
 {

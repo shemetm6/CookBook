@@ -1,8 +1,8 @@
-﻿using CookBook.Abstractions;
+﻿using AutoMapper;
+using CookBook.Abstractions;
 using CookBook.Enums;
 using CookBook.Exceptions;
 using CookBook.Models;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CookBook.Services;
 
@@ -10,10 +10,12 @@ public class RecipeRepository : IRecipeRepository
 {
     private readonly List<Recipe> _recipes = [];
     private readonly ITimeConverter _timeConverter;
+    private readonly IMapper _mapper;
 
-    public RecipeRepository(ITimeConverter timeConverter)
+    public RecipeRepository(ITimeConverter timeConverter, IMapper mapper)
     {
         _timeConverter = timeConverter;
+        _mapper = mapper;
     }
 
     public int AddRecipe(
