@@ -5,6 +5,7 @@ namespace CookBook.Abstractions;
 public interface IIngredientRepository
 {
     int AddIngredient(CreateIngredientDto dto);
-    Models.Ingredient GetIngredient(int id); //(!) пока не использую здесь Vm. Подумой, что должно передаваться во внутренней логике - объект или объектvm. А лучше сделай get метод
+    // Пока не использую здесь Vm т.к. метод используется только во внутренней логике т.е. для работы с оригинальной моделью, а не с dto.
+    Models.Ingredient GetIngredient(int id); 
     ListOfIngredients GetIngredients();
 }

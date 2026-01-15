@@ -14,10 +14,10 @@ public class IngredientMappingProfile : Profile
             .ForMember(dest => dest.RecipeTitle, opt => opt.MapFrom(src => src.Recipe!.Title));
 
         CreateMap<Ingredient, IngredientVm>()
-            .ForCtorParam(nameof(IngredientListVm.Recipes), opt => opt.MapFrom(src => src.Recipes));
+            .ForCtorParam(nameof(IngredientInListVm.Recipes), opt => opt.MapFrom(src => src.Recipes));
 
-        CreateMap<Ingredient, IngredientListVm>()
-            .ForCtorParam(nameof(IngredientListVm.Recipes), opt => opt.MapFrom(src => src.Recipes));
+        CreateMap<Ingredient, IngredientInListVm>()
+            .ForCtorParam(nameof(IngredientInListVm.Recipes), opt => opt.MapFrom(src => src.Recipes));
 
         CreateMap<IEnumerable<Ingredient>, ListOfIngredients>()
             .ForCtorParam(nameof(ListOfIngredients.Ingredients),
@@ -29,7 +29,7 @@ public class IngredientMappingProfile : Profile
     }
 }
 
-// Я пытался, но жоско запутался.
+// Я пытался сделать маппинг рецепта, но жоско запутался.
 // Вот в методах репозитория я должен начать принимать dto
 // Но тогда мне придется принимать dto еще и в RecipeService т.к. там дублируются методы RecipeRepository
 // А в ходе реализации некоторых методов RecipeService вызывается GetRecipe от вышеупомянутого репозитория.
@@ -43,7 +43,7 @@ public class RecipeMappingProfile : Profile
 {
     public RecipeMappingProfile()
     {
-        CreateMap<IngredientInRecipe, IngredientsInRecipeVm>()
+        CreateMap<IngredientInRecipe, IngredientInRecipeVm>()
             .ForMember(dest => dest.IngredientTitle, opt => opt.MapFrom(src => src.Ingredient!.Name)); // (!)
 
         CreateMap<Recipe, RecipeVm>()
@@ -54,8 +54,8 @@ public class RecipeMappingProfile : Profile
 
         CreateMap<IngredientInRecipe, IngredientInRecipeCreateVm>();
 
-        CreateMap<Recipe, RecipesListVm>()
-            .ForCtorParam(nameof(RecipesListVm.AverageRating),
+        CreateMap<Recipe, RecipeInListVm>()
+            .ForCtorParam(nameof(RecipeInListVm.AverageRating),
             opt => opt.MapFrom(src => src.Raitings.Count > 0 ? src.Raitings.Average() : (double?)null));
 
         CreateMap<IEnumerable<Recipe>, ListOfRecipes>()

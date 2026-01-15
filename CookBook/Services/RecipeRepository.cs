@@ -10,13 +10,8 @@ public class RecipeRepository : IRecipeRepository
 {
     private readonly List<Recipe> _recipes = [];
     private readonly ITimeConverter _timeConverter;
-    private readonly IMapper _mapper;
 
-    public RecipeRepository(ITimeConverter timeConverter, IMapper mapper)
-    {
-        _timeConverter = timeConverter;
-        _mapper = mapper;
-    }
+    public RecipeRepository(ITimeConverter timeConverter) => _timeConverter = timeConverter;
 
     public int AddRecipe(
         string title,
@@ -31,7 +26,7 @@ public class RecipeRepository : IRecipeRepository
             Id = recipeId,
             Title = title,
             CookTime = _timeConverter.Convert(cookTime, timeUnit),
-            Descritption = descritption,
+            Description = descritption,
         };
         _recipes.Add(recipe);
 
@@ -50,7 +45,7 @@ public class RecipeRepository : IRecipeRepository
 
         recipe.Title = title;
         recipe.CookTime = _timeConverter.Convert(cookTime, timeUnit);
-        recipe.Descritption = descritption;
+        recipe.Description = descritption;
     }
 
     public void RateRecipe(int id, Raiting raiting)

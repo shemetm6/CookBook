@@ -84,7 +84,7 @@ public class RecipeController : ControllerBase
                 if (recipe.Raitings.Count > 0)
                     averageRaiting = recipe.Raitings.Average();
 
-                return new RecipesListVm(recipe.Id, recipe.Title, averageRaiting);
+                return new RecipeInListVm(recipe.Id, recipe.Title, averageRaiting);
             })
             .ToList());
 
@@ -107,8 +107,8 @@ public class RecipeController : ControllerBase
             recipe.Title,
             recipe.CookTime,
             recipe.Ingredients
-                .Select(i => new IngredientsInRecipeVm(i.IngredientId, i.Ingredient!.Name, i.Quantity, i.Units)).ToList(),
-            recipe.Descritption,
+                .Select(i => new IngredientInRecipeVm(i.IngredientId, i.Ingredient!.Name, i.Quantity, i.Units)).ToList(),
+            recipe.Description,
             recipeAverageRaiting);
 
 

@@ -8,11 +8,11 @@ public class Recipe
         int Id, 
         string Title, 
         TimeSpan CookTime, 
-        List<IngredientsInRecipeVm> Ingredients, 
+        List<IngredientInRecipeVm> Ingredients, 
         string Description, 
         double? AverageRating);
 
-    public record IngredientsInRecipeVm(
+    public record IngredientInRecipeVm(
         int IngredientId, 
         string IngredientTitle,
         double Quantity, 
@@ -23,9 +23,9 @@ public class Recipe
         double Quantity,
         QuantityUnit? Units);
 
-    public record RecipesListVm(int Id, string Title, double? AverageRating);
+    public record RecipeInListVm(int Id, string Title, double? AverageRating);
 
-    public record ListOfRecipes(List<RecipesListVm> Recipes);
+    public record ListOfRecipes(List<RecipeInListVm> Recipes);
 
     public record CreateRecipeDto(
         string Title, 
