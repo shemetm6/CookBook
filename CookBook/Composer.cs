@@ -31,6 +31,8 @@ public static class Composer
     {
         services.AddTimeConverter();
         services.AddIngredientRepository();
+        services.AddIngredientService();
+        services.AddIngredientInRecipeService();
         services.AddIngredientInRecipeRepository();
         services.AddRecipeService();
         services.AddRecipeRepository();

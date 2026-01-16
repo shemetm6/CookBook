@@ -15,7 +15,7 @@ public class ExceptionHandler : IExceptionHandler
         {
             RecipeNotFoundException => (int)HttpStatusCode.NotFound,
             RecipeIdDuplicateException => (int)HttpStatusCode.Conflict,
-            IngredientNotAllowedException => (int)HttpStatusCode.BadRequest,
+            IngredientNotFoundException => (int)HttpStatusCode.NotFound,
             TimeUnitNotAllowedException => (int)HttpStatusCode.BadRequest,
             _ => (int)HttpStatusCode.InternalServerError,
         };

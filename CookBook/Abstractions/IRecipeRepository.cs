@@ -5,26 +5,21 @@ namespace CookBook.Abstractions;
 
 public interface IRecipeRepository
 {
-    public int AddRecipe(
+    int AddRecipe(
         string title,
         double cookTime,
         TimeUnit timeUnit,
         string descritption
     );
-
-    public void UpdateRecipe(
+    void UpdateRecipe(
         int recipeId,
         string title,
         double cookTime,
         TimeUnit timeUnit,
         string descritption
     );
-
-    public void RateRecipe(int id, Raiting raiting);
-
-    public void DeleteRecipe(int id);
-
-    public IReadOnlyList<Recipe> GetRecipes();
-
-    public Recipe GetRecipe(int id);
+    void RateRecipe(int id, Raiting raiting);
+    void DeleteRecipe(int id);
+    IReadOnlyList<Recipe> GetRecipes();
+    Recipe GetRecipe(int id);
 }

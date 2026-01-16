@@ -1,33 +1,13 @@
-﻿using CookBook.Enums;
-using CookBook.Models;
+﻿using static CookBook.Contracts.Recipe;
 
-namespace CookBook.Abstractions
+namespace CookBook.Abstractions;
+
+public interface IRecipeService
 {
-    public interface IRecipeService
-    {
-        public int AddRecipe(
-            string title,
-            double cookTime,
-            TimeUnit timeUnit,
-            string descritption,
-            List<IngredientInRecipe> ingredients
-        );
-
-        public void UpdateRecipe(
-            int recipeId,
-            string title,
-            double cookTime,
-            TimeUnit timeUnit,
-            string descritption,
-            List<IngredientInRecipe> ingredients
-        );
-
-        public void RateRecipe(int id, Raiting raiting);
-
-        public void DeleteRecipe(int id);
-
-        public IReadOnlyList<Recipe> GetRecipes();
-
-        public Recipe GetRecipe(int id);
-    }
+    int AddRecipe(CreateRecipeDto dto);
+    void UpdateRecipe(int id, UpdateRecipeDto dto);
+    void RateRecipe(int id, RateRecipeDto dto);
+    void DeleteRecipe(int id);
+    ListOfRecipes GetRecipes();
+    RecipeVm GetRecipe(int id);
 }

@@ -21,6 +21,7 @@ public class RecipeRepository : IRecipeRepository
     )
     {
         var recipeId = _recipes.Count;
+
         var recipe = new Recipe
         {
             Id = recipeId,
@@ -51,12 +52,14 @@ public class RecipeRepository : IRecipeRepository
     public void RateRecipe(int id, Raiting raiting)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(id);
+
         recipe.Raitings.Add((int)raiting);
     }
 
     public void DeleteRecipe(int id)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(id);
+
         _recipes.Remove(recipe);
     }
 
@@ -68,9 +71,6 @@ public class RecipeRepository : IRecipeRepository
     {
         var recipe = _recipes.FirstOrDefault(r => r.Id == id);
 
-        if (recipe is null)
-            throw new RecipeNotFoundException(id);
-
-        return recipe;
+        return recipe ?? throw new RecipeNotFoundException(id);
     }
 }

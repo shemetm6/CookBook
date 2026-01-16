@@ -4,5 +4,5 @@ namespace CookBook.Abstractions;
 
 public interface ITimeConverter
 {
-    public TimeSpan Convert(double time, TimeUnit unit);
+    TimeSpan Convert(double time, TimeUnit unit);
 }

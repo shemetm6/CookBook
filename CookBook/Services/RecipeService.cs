@@ -1,6 +1,6 @@
-﻿using CookBook.Abstractions;
-using CookBook.Enums;
-using CookBook.Models;
+﻿using AutoMapper;
+using CookBook.Abstractions;
+using static CookBook.Contracts.Recipe;
 
 namespace CookBook.Services;
 
@@ -9,69 +9,42 @@ public class RecipeService : IRecipeService
     private readonly IRecipeRepository _recipeRepository;
     private readonly IIngredientInRecipeRepository _ingredientInRecipeRepository;
     private readonly IIngredientRepository _ingredientRepository;
+    private readonly IIngredientInRecipeService _ingredientInRecipeService;
+    private readonly IMapper _mapper;
 
     public RecipeService(
         IRecipeRepository recipeRepository,
         IIngredientInRecipeRepository ingredientInRecipeRepository,
-        IIngredientRepository ingredientRepository
+        IIngredientRepository ingredientRepository,
+        IIngredientInRecipeService ingredientInRecipeService,
+        IMapper mapper
     )
     {
         _recipeRepository = recipeRepository;
         _ingredientInRecipeRepository = ingredientInRecipeRepository;
         _ingredientRepository = ingredientRepository;
+        _ingredientInRecipeService = ingredientInRecipeService;
+        _mapper = mapper;
     }
 
-    public int AddRecipe(
-    string title,
-    double cookTime,
-    TimeUnit timeUnit,
-    string descritption,
-    List<IngredientInRecipe> ingredients
-)
+    public int AddRecipe(CreateRecipeDto dto)
     {
-        // Без этой проверки не выбрасывалось исключение при добавлении ингредиента с некорректным Id
-        // В результать получал 500ку, а рецепт всё равно создавался
-        EnsureIngredientsExist(ingredients);
+        EnsureIngredientsExist(dto.Ingredients);
 
-        var recipeId = _recipeRepository.AddRecipe(title, cookTime, timeUnit, descritption);
+        var recipeId = _recipeRepository.AddRecipe(dto.Title, dto.CookTime, dto.TimeUnit, dto.Description);
 
-        foreach (var ingredient in ingredients)
-        {
-            ingredient.RecipeId = recipeId;
-            _ingredientInRecipeRepository.AttachIngredientToRecipe(ingredient);
-        }
+        _ingredientInRecipeService.AttachAllIngredientsToRecipe(recipeId, dto.Ingredients);
 
         return recipeId;
     }
 
-    public void UpdateRecipe(
-    int recipeId,
-    string title,
-    double cookTime,
-    TimeUnit timeUnit,
-    string descritption,
-    List<IngredientInRecipe> ingredients
-)
+    public void UpdateRecipe(int recipeId, UpdateRecipeDto dto)
     {
-        EnsureIngredientsExist(ingredients);
+        EnsureIngredientsExist(dto.Ingredients);
 
-        _recipeRepository.UpdateRecipe(recipeId, title, cookTime, timeUnit, descritption);
+        _recipeRepository.UpdateRecipe(recipeId, dto.Title, dto.CookTime, dto.TimeUnit, dto.Description);
 
-        var recipe = _recipeRepository.GetRecipe(recipeId);
-
-        // Было foreach (var ingredient in recipe.Ingredients)
-        // Из-за чего изменялась та коллекция, которую мы перебираем
-        // В следствии чего не работал UpdateRecipe и DeleteRecipe
-        foreach (var ingredient in recipe.Ingredients.ToList())
-        {
-            _ingredientInRecipeRepository.RemoveIngredientFromRecipe(ingredient);
-        }
-
-        foreach (var ingredient in ingredients)
-        {
-            ingredient.RecipeId = recipeId;
-            _ingredientInRecipeRepository.AttachIngredientToRecipe(ingredient);
-        }
+        _ingredientInRecipeService.ReplaceAllIngredientsInRecipe(recipeId, dto.Ingredients);
     }
 
     public void DeleteRecipe(int id)
@@ -86,22 +59,18 @@ public class RecipeService : IRecipeService
         _recipeRepository.DeleteRecipe(id);
     }
 
-    public Recipe GetRecipe(int id)
+    public RecipeVm GetRecipe(int id) 
+        => _mapper.Map<RecipeVm>(_recipeRepository.GetRecipe(id));
+
+    public ListOfRecipes GetRecipes() 
+        => _mapper.Map<ListOfRecipes>(_recipeRepository.GetRecipes());
+    
+    public void RateRecipe(int id, RateRecipeDto dto)
     {
-        return _recipeRepository.GetRecipe(id);
+        _recipeRepository.RateRecipe(id, dto.Raiting);
     }
 
-    public IReadOnlyList<Recipe> GetRecipes()
-    {
-        return _recipeRepository.GetRecipes();
-    }
-
-    public void RateRecipe(int id, Raiting raiting)
-    {
-        _recipeRepository.RateRecipe(id, raiting);
-    }
-
-    private void EnsureIngredientsExist(List<IngredientInRecipe> ingredients)
+    private void EnsureIngredientsExist(IEnumerable<IngredientInRecipeCreateVm> ingredients)
     {
         foreach (var ingredient in ingredients)
         {

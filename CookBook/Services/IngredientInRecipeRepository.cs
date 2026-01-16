@@ -42,6 +42,5 @@ public class IngredientInRecipeRepository : IIngredientInRecipeRepository
         if (toRemoveInIngredient != null) ingredient.Recipes.Remove(toRemoveInIngredient);
         if (toRemoveInRecipe != null) recipe.Ingredients.Remove(toRemoveInRecipe);
     }
-
 }
 

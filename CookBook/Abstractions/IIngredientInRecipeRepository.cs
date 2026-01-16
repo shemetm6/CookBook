@@ -4,6 +4,6 @@ namespace CookBook.Abstractions;
 
 public interface IIngredientInRecipeRepository
 {
-    public void AttachIngredientToRecipe(IngredientInRecipe ingredientInRecipe);
-    public void RemoveIngredientFromRecipe(IngredientInRecipe ingredientInRecipe);
+    void AttachIngredientToRecipe(IngredientInRecipe ingredientInRecipe);
+    void RemoveIngredientFromRecipe(IngredientInRecipe ingredientInRecipe);
 }

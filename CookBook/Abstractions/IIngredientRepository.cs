@@ -1,11 +1,10 @@
-﻿using static CookBook.Contracts.Ingredient;
+﻿using CookBook.Models;
 
 namespace CookBook.Abstractions;
 
 public interface IIngredientRepository
 {
-    int AddIngredient(CreateIngredientDto dto);
-    // Пока не использую здесь Vm т.к. метод используется только во внутренней логике т.е. для работы с оригинальной моделью, а не с dto.
-    Models.Ingredient GetIngredient(int id); 
-    ListOfIngredients GetIngredients();
+    int AddIngredient(string name);
+    Ingredient GetIngredient(int id);
+    IReadOnlyList<Ingredient> GetIngredients();
 }
