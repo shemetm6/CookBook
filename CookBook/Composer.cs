@@ -1,14 +1,22 @@
 ﻿using CookBook.Services;
 using System.Text.Json.Serialization;
 using CookBook.Extensions;
+using CookBook.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace CookBook;
 
 public static class Composer
 {
-    public static IServiceCollection AddInfrastructure (this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddAutoMapper(typeof(Composer).Assembly);
+        services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.UseNpgsql(
+                "Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=CookBook"
+                );
+        });
         services.AddExceptionHandler<ExceptionHandler>();
         services.AddControllers()
             .AddJsonOptions(options =>
