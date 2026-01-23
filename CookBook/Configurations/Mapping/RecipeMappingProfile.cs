@@ -44,6 +44,7 @@ public class RecipeMappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Ratings, opt => opt.Ignore())
             // Будет потом заполнен в репозитории т.к. нужен TimeConverter
+            // (!!!) А репозиторий то теперь не будет использоваться т.к. у нас ApplicationDbContext есть.
             .ForMember(dest => dest.CookTime, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));
 
@@ -51,6 +52,7 @@ public class RecipeMappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Ratings, opt => opt.Ignore())
             // Будет потом заполнен в репозитории т.к. нужен TimeConverter
+            // Та же проблема
             .ForMember(dest => dest.CookTime, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));
     }

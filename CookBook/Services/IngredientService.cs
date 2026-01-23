@@ -1,29 +1,44 @@
 ﻿using AutoMapper;
 using CookBook.Abstractions;
+using CookBook.Exceptions;
+using CookBook.Models;
+using Microsoft.EntityFrameworkCore;
 using static CookBook.Contracts.Ingredient;
 
 namespace CookBook.Services;
 
 public class IngredientService : IIngredientService
 {
-    private readonly IIngredientRepository _ingredientRepository;
+    private readonly IApplicationDbContext _applicationDbContext;
     private readonly IMapper _mapper;
 
     public IngredientService(
-        IIngredientRepository ingredientRepository,
+        IApplicationDbContext applicationDbContext, 
         IMapper mapper
-    )
+        )
     {
-        _ingredientRepository = ingredientRepository;
+        _applicationDbContext = applicationDbContext;
         _mapper = mapper;
     }
 
-    public int AddIngredient(CreateIngredientDto dto) 
-        => _ingredientRepository.AddIngredient(dto.Name);
+    public int AddIngredient(CreateIngredientDto dto)
+    {
+        var ingredient = _mapper.Map<Ingredient>(dto);
 
-    public ListOfIngredients GetIngredients()
-        => _mapper.Map<ListOfIngredients>(_ingredientRepository.GetIngredients());
+        _applicationDbContext.Ingredients.Add(ingredient);
+
+        _applicationDbContext.SaveChanges();
+
+        return ingredient.Id;
+    }
+
+    public ListOfIngredients GetIngredients() 
+        => _mapper.Map<ListOfIngredients>(_applicationDbContext.Ingredients.AsNoTracking().ToList());
 
     public IngredientVm GetIngredient(int id)
-        => _mapper.Map<IngredientVm>(_ingredientRepository.GetIngredient(id));
+    {
+        var ingredient = _applicationDbContext.Ingredients.AsNoTracking().FirstOrDefault(i => i.Id == id);
+
+        return ingredient is null ? throw new IngredientNotFoundException(id) : _mapper.Map<IngredientVm>(ingredient);
+    }
 }
