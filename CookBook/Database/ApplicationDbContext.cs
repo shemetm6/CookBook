@@ -13,8 +13,7 @@ public class ApplicationDbContext : DbContext
           : base(options) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<IngredientInRecipe>()
-            .HasKey(ir => new { ir.IngredientId, ir.RecipeId });
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(Program).Assembly);
 
         base.OnModelCreating(modelBuilder);
     }

@@ -1,6 +1,6 @@
 ﻿namespace CookBook.Enums;
 
-public enum Raiting
+public enum Rating
 {
     VeryBad = 1,
     Bad,

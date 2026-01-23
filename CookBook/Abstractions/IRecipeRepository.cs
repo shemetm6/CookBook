@@ -18,7 +18,7 @@ public interface IRecipeRepository
         TimeUnit timeUnit,
         string descritption
     );
-    void RateRecipe(int id, Raiting raiting);
+    void RateRecipe(int id, Rating rating);
     void DeleteRecipe(int id);
     IReadOnlyList<Recipe> GetRecipes();
     Recipe GetRecipe(int id);

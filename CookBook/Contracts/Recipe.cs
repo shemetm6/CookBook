@@ -34,5 +34,5 @@ public class Recipe
         TimeUnit TimeUnit, 
         List<IngredientInRecipeCreateVm> Ingredients, 
         string Description);
-    public record RateRecipeDto(Raiting Raiting);
+    public record RateRecipeDto(Rating Rating);
 }

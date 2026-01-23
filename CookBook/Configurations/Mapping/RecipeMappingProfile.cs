@@ -24,13 +24,13 @@ public class RecipeMappingProfile : Profile
             .ForCtorParam(nameof(RecipeVm.Ingredients),
             opt => opt.MapFrom(src => src.Ingredients))
             .ForCtorParam(nameof(RecipeVm.AverageRating),
-            opt => opt.MapFrom(src => src.Raitings.Count > 0 ? src.Raitings.Average() : (double?)null));
+            opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Average() : (double?)null));
 
         CreateMap<IngredientInRecipe, IngredientInRecipeCreateVm>();
 
         CreateMap<Recipe, RecipeInListVm>()
             .ForCtorParam(nameof(RecipeInListVm.AverageRating),
-            opt => opt.MapFrom(src => src.Raitings.Count > 0 ? src.Raitings.Average() : (double?)null));
+            opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Average() : (double?)null));
 
         CreateMap<IEnumerable<Recipe>, ListOfRecipes>()
             .ForCtorParam(nameof(ListOfRecipes.Recipes), opt => opt.MapFrom(src => src.ToList()));
@@ -42,14 +42,14 @@ public class RecipeMappingProfile : Profile
 
         CreateMap<CreateRecipeDto, Recipe>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Raitings, opt => opt.Ignore())
+            .ForMember(dest => dest.Ratings, opt => opt.Ignore())
             // Будет потом заполнен в репозитории т.к. нужен TimeConverter
             .ForMember(dest => dest.CookTime, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));
 
         CreateMap<UpdateRecipeDto, Recipe>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Raitings, opt => opt.Ignore())
+            .ForMember(dest => dest.Ratings, opt => opt.Ignore())
             // Будет потом заполнен в репозитории т.к. нужен TimeConverter
             .ForMember(dest => dest.CookTime, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));

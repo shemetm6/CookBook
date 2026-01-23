@@ -49,11 +49,11 @@ public class RecipeRepository : IRecipeRepository
         recipe.Description = descritption;
     }
 
-    public void RateRecipe(int id, Raiting raiting)
+    public void RateRecipe(int id, Rating rating)
     {
         var recipe = TryGetRecipeAndThrowIfNotFound(id);
 
-        recipe.Raitings.Add((int)raiting);
+        recipe.Ratings.Add((int)rating);
     }
 
     public void DeleteRecipe(int id)

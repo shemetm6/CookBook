@@ -67,7 +67,7 @@ public class RecipeService : IRecipeService
     
     public void RateRecipe(int id, RateRecipeDto dto)
     {
-        _recipeRepository.RateRecipe(id, dto.Raiting);
+        _recipeRepository.RateRecipe(id, dto.Rating);
     }
 
     private void EnsureIngredientsExist(IEnumerable<IngredientInRecipeCreateVm> ingredients)
