@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using CookBook.Abstractions;
+﻿using CookBook.Abstractions;
 using CookBook.Enums;
 using CookBook.Exceptions;
 using CookBook.Models;

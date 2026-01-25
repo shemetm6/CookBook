@@ -1,5 +1,4 @@
-﻿using CookBook.Database;
-using CookBook.Models;
+﻿using CookBook.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CookBook.Abstractions;

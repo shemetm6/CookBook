@@ -17,10 +17,6 @@ public class IngredientEntityConfiguration : IEntityTypeConfiguration<Ingredient
         builder.HasIndex(i => i.Name)
             .IsUnique();
 
-        // Правильно ли я понял, что мы тут написали: у ингредиента есть много IngredientInRecipe (название Recipes)
-        // Но у IngredientInRecipe есть только один ингредиент
-        // И связаны они по Ingredient.Id 
-        // И запрещаем удаление ингредиента, если он используется в рецептах
         builder.HasMany(i => i.Recipes)
             .WithOne(ir => ir.Ingredient)
             .HasForeignKey(ir => ir.IngredientId)

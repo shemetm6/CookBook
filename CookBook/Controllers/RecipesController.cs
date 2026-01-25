@@ -1,6 +1,6 @@
 ﻿using CookBook.Abstractions;
 using Microsoft.AspNetCore.Mvc;
-using static CookBook.Contracts.Recipe;
+using CookBook.Contracts;
 
 namespace CookBook.Controllers;
 

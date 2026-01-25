@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using CookBook.Models;
-using static CookBook.Contracts.Ingredient;
+using CookBook.Contracts;
 
 namespace CookBook.Configurations.Mapping;
 

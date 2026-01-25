@@ -1,6 +1,6 @@
 ﻿using CookBook.Abstractions;
 using Microsoft.AspNetCore.Mvc;
-using static CookBook.Contracts.Ingredient;
+using CookBook.Contracts;
 
 namespace CookBook.Controllers;
 
@@ -24,5 +24,4 @@ public class IngredientsController : ControllerBase
     [HttpGet("{id}")]
     public ActionResult<IngredientVm> GetIngredient(int id)
         => Ok(_ingredientService.GetIngredient(id));
-
 }

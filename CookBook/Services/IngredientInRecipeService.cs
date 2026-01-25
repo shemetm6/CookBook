@@ -1,6 +1,6 @@
 ﻿using CookBook.Abstractions;
 using CookBook.Models;
-using static CookBook.Contracts.Recipe;
+using CookBook.Contracts;
 
 namespace CookBook.Services;
 

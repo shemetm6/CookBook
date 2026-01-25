@@ -1,4 +1,4 @@
-﻿using static CookBook.Contracts.Ingredient;
+﻿using CookBook.Contracts;
 
 namespace CookBook.Abstractions;
 

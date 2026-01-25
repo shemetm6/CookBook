@@ -3,7 +3,7 @@ using CookBook.Abstractions;
 using CookBook.Exceptions;
 using CookBook.Models;
 using Microsoft.EntityFrameworkCore;
-using static CookBook.Contracts.Ingredient;
+using CookBook.Contracts;
 
 namespace CookBook.Services;
 

@@ -21,11 +21,10 @@ public class RecipeEntityConfiguration : IEntityTypeConfiguration<Recipe>
             .IsRequired()
             .HasMaxLength(32000);
 
-        // чатгпт говорит надо явно указать, что работать с листом надо как с массивом,
-        // т.к. postgresql с Npgsql не знает как хранить лист, а как хранить массив знает.
-        // Я ХУЙ ЗНАЕТ НЕОБХОДИМО ЛИ ЭТО
+        /* Отказываемся от хранения рейтинга в БД до появления соответствующей модели
         builder.Property(r => r.Ratings)
             .HasColumnType("integer[]");
+        */
 
         builder.HasMany(r => r.Ingredients)
             .WithOne(ir => ir.Recipe)
