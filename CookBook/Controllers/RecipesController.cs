@@ -27,7 +27,7 @@ public class RecipesController : ControllerBase
 
         return NoContent();
     }
-
+    /* Work in progress
     [HttpPut("{id}/raiting")]
     public ActionResult RateRecipe(int id, RateRecipeDto dto)
     {
@@ -35,7 +35,7 @@ public class RecipesController : ControllerBase
 
         return NoContent();
     }
-
+    */
     [HttpDelete("{id}")]
     public ActionResult DeleteRecipe(int id)
     {

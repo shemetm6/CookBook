@@ -8,8 +8,6 @@ public class RecipeMappingProfile : Profile
 {
     public RecipeMappingProfile()
     {
-        // Мне казалось, что тут автоматически смаппится/проигнорируется всё, кроме IngredientName т.к. нет такого св-ва в IngredientInRecipe
-        // Но подробно посмотреть рецепт через get запрос по id не получалось, выдавал ошибку маппинга
         CreateMap<IngredientInRecipe, IngredientInRecipeVm>()
             .ForCtorParam(nameof(IngredientInRecipeVm.IngredientId),
             opt => opt.MapFrom(src => src.IngredientId))
@@ -43,18 +41,13 @@ public class RecipeMappingProfile : Profile
         CreateMap<CreateRecipeDto, Recipe>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Ratings, opt => opt.Ignore())
-            // Будет потом заполнен в репозитории т.к. нужен TimeConverter
-            // (!!!) А репозиторий то теперь не будет использоваться т.к. у нас ApplicationDbContext есть.
             .ForMember(dest => dest.CookTime, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));
 
         CreateMap<UpdateRecipeDto, Recipe>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Ratings, opt => opt.Ignore())
-            // Будет потом заполнен в репозитории т.к. нужен TimeConverter
-            // Та же проблема
             .ForMember(dest => dest.CookTime, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));
     }
-
 }

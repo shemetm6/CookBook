@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -19,7 +18,7 @@ namespace CookBook.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false)
+                    Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,10 +31,10 @@ namespace CookBook.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
+                    Title = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     CookTime = table.Column<TimeSpan>(type: "interval", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Raitings = table.Column<List<int>>(type: "integer[]", nullable: false)
+                    Description = table.Column<string>(type: "character varying(32000)", maxLength: 32000, nullable: false),
+                    Ratings = table.Column<int[]>(type: "integer[]", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -59,7 +58,7 @@ namespace CookBook.Migrations
                         column: x => x.IngredientId,
                         principalTable: "Ingredients",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_IngredientsInRecipes_Recipes_RecipeId",
                         column: x => x.RecipeId,
@@ -67,6 +66,12 @@ namespace CookBook.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ingredients_Name",
+                table: "Ingredients",
+                column: "Name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_IngredientsInRecipes_RecipeId",

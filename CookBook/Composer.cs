@@ -39,12 +39,8 @@ public static class Composer
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddTimeConverter();
-        services.AddIngredientRepository();
         services.AddIngredientService();
-        services.AddIngredientInRecipeService();
-        services.AddIngredientInRecipeRepository();
         services.AddRecipeService();
-        services.AddRecipeRepository();
 
         return services;
     }

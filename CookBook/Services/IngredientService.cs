@@ -37,8 +37,15 @@ public class IngredientService : IIngredientService
 
     public IngredientVm GetIngredient(int id)
     {
-        var ingredient = _applicationDbContext.Ingredients.AsNoTracking().FirstOrDefault(i => i.Id == id);
+        var ingredient = _applicationDbContext.Ingredients
+            .AsNoTracking()
+            .Include(i => i.Recipes)
+            .ThenInclude(ir => ir.Recipe)
+            .FirstOrDefault(i => i.Id == id);
 
-        return ingredient is null ? throw new IngredientNotFoundException(id) : _mapper.Map<IngredientVm>(ingredient);
+        if (ingredient is null)
+            throw new IngredientNotFoundException(id);
+
+        return _mapper.Map<IngredientVm>(ingredient);
     }
 }

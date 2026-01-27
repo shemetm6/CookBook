@@ -39,4 +39,5 @@ public record UpdateRecipeDto(
     List<IngredientInRecipeCreateVm> Ingredients,
     string Description
     );
+
 public record RateRecipeDto(Rating Rating);

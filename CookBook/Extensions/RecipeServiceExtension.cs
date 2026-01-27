@@ -6,5 +6,5 @@ namespace CookBook.Extensions;
 public static class RecipeServiceExtension
 {
     public static IServiceCollection AddRecipeService(this IServiceCollection services)
-        => services.AddSingleton<IRecipeService, RecipeService>();
+        => services.AddScoped<IRecipeService, RecipeService>();
 }

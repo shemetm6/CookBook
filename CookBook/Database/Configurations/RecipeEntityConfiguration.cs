@@ -21,7 +21,7 @@ public class RecipeEntityConfiguration : IEntityTypeConfiguration<Recipe>
             .IsRequired()
             .HasMaxLength(32000);
 
-        /* Отказываемся от хранения рейтинга в БД до появления соответствующей модели
+        /* Отказываемся от колонки рейтинга в БД до появления соответствующей модели
         builder.Property(r => r.Ratings)
             .HasColumnType("integer[]");
         */

@@ -2,6 +2,8 @@
 
 namespace CookBook.Exceptions;
 
+// Есть ощущение, что я это исключение не смогу увидеть ни в каком случае
+// Может оно и не нужно?
 public class TimeUnitNotAllowedException : Exception
 {
     public TimeUnitNotAllowedException(TimeUnit invalidTimeUnit) : base(BuildMessage(invalidTimeUnit)) { }
