@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 using CookBook.Extensions;
 using CookBook.Database;
 using CookBook.Abstractions;
-using CookBook.Database.Configurations.Database;
 using Microsoft.EntityFrameworkCore;
+using CookBook.Configurations.Database;
 
 namespace CookBook;
 

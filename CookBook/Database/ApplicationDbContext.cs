@@ -1,8 +1,8 @@
 ﻿using CookBook.Abstractions;
 using CookBook.Models;
-using CookBook.Database.Configurations.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using CookBook.Configurations.Database;
 
 namespace CookBook.Database;
 

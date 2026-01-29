@@ -26,7 +26,7 @@ public class RecipeService : IRecipeService
 
     public int AddRecipe(CreateRecipeDto dto)
     {
-        EnsureIngredientsExist(dto.Ingredients);
+        ThrowIfIngredientsNotExist(dto.Ingredients);
 
         var recipe = _mapper.Map<Recipe>(dto);
 
@@ -34,8 +34,6 @@ public class RecipeService : IRecipeService
 
         foreach (var ingredientInRecipe in recipe.Ingredients)
         {
-            // (!) Уже проверили корректность ингредиентов в начале метода.
-            // Поэтому First, а не как обычно FirstOrDefault.
             var existingIngredient = _applicationDbContext.Ingredients
                 .First(i => i.Id == ingredientInRecipe.IngredientId);
 
@@ -49,12 +47,8 @@ public class RecipeService : IRecipeService
         return recipe.Id;
     }
 
-    // Не увидел смысла переходить на новый модный способ т.к. со связями всё равно пришлось бы работать вручную
-    // и вызывать SaveChanges.
     public void UpdateRecipe(int recipeId, UpdateRecipeDto dto)
     {
-        // Вот здесь мы вызываем Include и ThenInclude т.к. EF не подгружает связи с другими объектами автоматически.
-        // А нам нужно их дальше модифицировать. Так?
         var recipeToUpdate = _applicationDbContext.Recipes
             .Include(r => r.Ingredients) 
             .ThenInclude(ir => ir.Ingredient)
@@ -63,7 +57,7 @@ public class RecipeService : IRecipeService
         if (recipeToUpdate is null)
             throw new RecipeNotFoundException(recipeId);
 
-        EnsureIngredientsExist(dto.Ingredients);
+        ThrowIfIngredientsNotExist(dto.Ingredients);
 
         foreach (var ingredientInRecipe in recipeToUpdate.Ingredients.ToList())
         {
@@ -74,7 +68,6 @@ public class RecipeService : IRecipeService
         {
             var ingredientInRecipe = _mapper.Map<IngredientInRecipe>(ingredientInRecipeVm);
 
-            // (!) Аналогично, указанному в AddRecipe.
             var existingIngredient = _applicationDbContext.Ingredients
                 .First(i => i.Id == ingredientInRecipe.IngredientId);
 
@@ -93,25 +86,6 @@ public class RecipeService : IRecipeService
 
     public void DeleteRecipe(int id)
     {
-        /* Не новый и не модный способ удаления. Просто чтобы убедиться, что я правильно понял как происходит удаление. Всё ведь так?
-        var recipeToDelete = _applicationDbContext.Recipes
-            .Include(r => r.Ingredients)
-            .ThenInclude(ir => ir.Ingredient)
-            .FirstOrDefault(r => r.Id == id);
-
-        if (recipeToDelete is null)
-            throw new RecipeNotFoundException(id);
-
-        foreach(var ingredientInRecipe in recipeToDelete.Ingredients.ToList())
-        {
-            recipeToDelete.Ingredients.Remove(ingredientInRecipe);
-        }
-
-        _applicationDbContext.Recipes.Remove(recipeToDelete);
-
-        _applicationDbContext.SaveChanges();
-        */
-
         var deletedRecipesCount = _applicationDbContext.Recipes
             .Where(r => r.Id == id)
             .ExecuteDelete();
@@ -134,12 +108,11 @@ public class RecipeService : IRecipeService
         return _mapper.Map<RecipeVm>(recipe);
     }
     
-    // Меня калит, что список выдается в порядке изменения, а не в порядке увеличения id
-    // Но добавив сюда OrderBy порядок в бд не изменяется. С другой стороны, а надо ли порядок менять в БД.
-    // Наверное нет.
-    // В любом случае, до сортировки мы дойдём позже.
     public ListOfRecipes GetRecipes()
-        => _mapper.Map<ListOfRecipes>(_applicationDbContext.Recipes.AsNoTracking().ToList());
+        => _mapper.Map<ListOfRecipes>(_applicationDbContext.Recipes
+            .AsNoTracking()
+            .OrderBy(r => r.Id)
+            .ToList());
 
     public void RateRecipe(int id, RateRecipeDto dto)
     {
@@ -153,9 +126,7 @@ public class RecipeService : IRecipeService
         _applicationDbContext.SaveChanges();
     }
 
-    // Довольно много строчек уходит на проверку, поэтому решил вынести в отдельный метод.
-    // Да и метод уже был, жалко терять моё дитятко.
-    private void EnsureIngredientsExist(IEnumerable<IngredientInRecipeCreateVm> ingredients)
+    private void ThrowIfIngredientsNotExist(IEnumerable<IngredientInRecipeCreateVm> ingredients)
     {
         var dtoIngredientIds = ingredients
             .Select(i => i.IngredientId)

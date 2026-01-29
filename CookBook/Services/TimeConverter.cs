@@ -1,5 +1,4 @@
 ﻿using CookBook.Enums;
-using CookBook.Exceptions;
 using CookBook.Abstractions;
 
 namespace CookBook.Services;
@@ -14,7 +13,7 @@ public class TimeConverter : ITimeConverter
             TimeUnit.Minutes => TimeSpan.FromMinutes(time),
             TimeUnit.Hours => TimeSpan.FromHours(time),
             TimeUnit.Days => TimeSpan.FromDays(time),
-            _ => throw new TimeUnitNotAllowedException(unit),
+            _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, $"Unsupported time unit!"),
         };
     }
 }
