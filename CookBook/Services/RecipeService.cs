@@ -28,6 +28,11 @@ public class RecipeService : IRecipeService
     {
         ThrowIfIngredientsNotExist(dto.Ingredients);
 
+        var userExists = _applicationDbContext.Users.Any(u => u.Id == dto.UserId);
+
+        if (!userExists)
+            throw new UserNotFoundException(dto.UserId);
+
         var recipe = _mapper.Map<Recipe>(dto);
 
         recipe.CookTime = _timeConverter.Convert(dto.CookTime, dto.TimeUnit);
@@ -98,6 +103,7 @@ public class RecipeService : IRecipeService
     {
         var recipe = _applicationDbContext.Recipes
             .AsNoTracking()
+            .Include(r => r.User)
             .Include(r => r.Ingredients)
             .ThenInclude(ir => ir.Ingredient)
             .FirstOrDefault(r => r.Id == id);

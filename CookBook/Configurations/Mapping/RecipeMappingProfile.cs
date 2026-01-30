@@ -8,6 +8,9 @@ public class RecipeMappingProfile : Profile
 {
     public RecipeMappingProfile()
     {
+        // Меня смущает объем этого блока. Но! Чатгпт сказал, что если ты один раз вызываешь ForCtorParam,
+        // то AutoMapper считает, что ты взял управление на себя и сам уже ничего не сопоставляет.
+        // И у меня действительно не получалось сделать get запрос по id рецепта, пока я это всё не прописал
         CreateMap<IngredientInRecipe, IngredientInRecipeVm>()
             .ForCtorParam(nameof(IngredientInRecipeVm.IngredientId),
             opt => opt.MapFrom(src => src.IngredientId))
@@ -18,9 +21,13 @@ public class RecipeMappingProfile : Profile
             .ForCtorParam(nameof(IngredientInRecipeVm.Units),
             opt => opt.MapFrom(src => src.Units));
 
+        // Но тогда какого хуя тут всё маппится нормально. Здесь указаны далеко не все свойства
+        // (для себя) Попробуй избавиться от лишнего после коммита
         CreateMap<Recipe, RecipeVm>()
             .ForCtorParam(nameof(RecipeVm.Ingredients),
             opt => opt.MapFrom(src => src.Ingredients))
+            .ForCtorParam(nameof(RecipeVm.UserLogin),
+            opt => opt.MapFrom(src => src.User.Login))
             .ForCtorParam(nameof(RecipeVm.AverageRating),
             opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Average() : (double?)null));
 

@@ -4,6 +4,7 @@ using CookBook.Contracts;
 
 namespace CookBook.Configurations.Mapping;
 
+// (для себя) Аналогично RecipeMappingProfile: попробуй прибраться после коммита
 public class IngredientMappingProfile : Profile
 {
     public IngredientMappingProfile()

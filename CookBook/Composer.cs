@@ -50,6 +50,7 @@ public static class Composer
         services.AddTimeConverter();
         services.AddIngredientService();
         services.AddRecipeService();
+        services.AddUserService();
 
         return services;
     }

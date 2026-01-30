@@ -30,5 +30,9 @@ public class RecipeEntityConfiguration : IEntityTypeConfiguration<Recipe>
             .WithOne(ir => ir.Recipe)
             .HasForeignKey(ir => ir.RecipeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(r => r.User)
+            .WithMany(u => u.Recipes)
+            .HasForeignKey(r => r.UserId);
     }
 }

@@ -10,6 +10,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public readonly ApplicationDbContextSettings _dbContextSettings;
 
+    public DbSet<User> Users { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<Recipe> Recipes { get; set; }
     public DbSet<IngredientInRecipe> IngredientsInRecipes { get; set; }
