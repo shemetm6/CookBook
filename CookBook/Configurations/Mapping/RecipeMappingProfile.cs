@@ -4,24 +4,15 @@ using AutoMapper;
 
 namespace CookBook.Configurations.Mapping;
 
-// (todo) Прибраться
 public class RecipeMappingProfile : Profile
 {
     public RecipeMappingProfile()
     {
         CreateMap<IngredientInRecipe, IngredientInRecipeVm>()
-            .ForCtorParam(nameof(IngredientInRecipeVm.IngredientId),
-            opt => opt.MapFrom(src => src.IngredientId))
             .ForCtorParam(nameof(IngredientInRecipeVm.IngredientName),
-            opt => opt.MapFrom(src => src.Ingredient!.Name))
-            .ForCtorParam(nameof(IngredientInRecipeVm.Quantity),
-            opt => opt.MapFrom(src => src.Quantity))
-            .ForCtorParam(nameof(IngredientInRecipeVm.Units),
-            opt => opt.MapFrom(src => src.Units));
+            opt => opt.MapFrom(src => src.Ingredient!.Name));
 
         CreateMap<Recipe, RecipeVm>()
-            .ForCtorParam(nameof(RecipeVm.Ingredients),
-            opt => opt.MapFrom(src => src.Ingredients))
             .ForCtorParam(nameof(RecipeVm.UserLogin),
             opt => opt.MapFrom(src => src.User.Login))
             .ForCtorParam(nameof(RecipeVm.AverageRating),
@@ -36,20 +27,12 @@ public class RecipeMappingProfile : Profile
         CreateMap<IEnumerable<Recipe>, ListOfRecipes>()
             .ForCtorParam(nameof(ListOfRecipes.Recipes), opt => opt.MapFrom(src => src.ToList()));
 
-        CreateMap<IngredientInRecipeCreateVm, IngredientInRecipe>()
-            .ForMember(dest => dest.RecipeId, opt => opt.Ignore())
-            .ForMember(dest => dest.Recipe, opt => opt.Ignore())
-            .ForMember(dest => dest.Ingredient, opt => opt.Ignore());
+        CreateMap<IngredientInRecipeCreateVm, IngredientInRecipe>();
 
         CreateMap<CreateRecipeDto, Recipe>()
-            .ForMember(dest => dest.Ratings, opt => opt.Ignore())
-            .ForMember(dest => dest.CookTime, opt => opt.Ignore())
-            .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));
+            .ForMember(dest => dest.CookTime, opt => opt.Ignore());
 
         CreateMap<UpdateRecipeDto, Recipe>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Ratings, opt => opt.Ignore())
-            .ForMember(dest => dest.CookTime, opt => opt.Ignore())
-            .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));
+            .ForMember(dest => dest.CookTime, opt => opt.Ignore());
     }
 }

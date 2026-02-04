@@ -1,6 +1,6 @@
 ﻿namespace CookBook.Contracts;
 
-// (todo) Добавить рейтинг
+// (todo) Внедрить рейтинг
 public record RecipeInUserVm(int Id, string Title);
 public record UserVm(int Id, string Login, List<RecipeInUserVm> Recipes);
 public record UserInListVm(int Id, string Login);
