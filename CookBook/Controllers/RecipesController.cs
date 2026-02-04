@@ -1,6 +1,7 @@
 ﻿using CookBook.Abstractions;
 using CookBook.Contracts;
 using CookBook.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CookBook.Controllers;
@@ -68,10 +69,12 @@ public class RecipesController : BaseController
         return NoContent();
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public ActionResult<ListOfRecipes> GetRecipes()
         => Ok(_recipeService.GetRecipes());
 
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public ActionResult<RecipeVm> GetRecipe(int id)
         => Ok(_recipeService.GetRecipe(id));
