@@ -1,5 +1,5 @@
-﻿using CookBook.Enums;
-using CookBook.Abstractions;
+﻿using CookBook.Abstractions;
+using CookBook.Enums;
 
 namespace CookBook.Services;
 

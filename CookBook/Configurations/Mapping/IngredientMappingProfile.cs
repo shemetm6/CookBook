@@ -1,10 +1,10 @@
-﻿using AutoMapper;
-using CookBook.Models;
+﻿using CookBook.Models;
 using CookBook.Contracts;
+using AutoMapper;
 
 namespace CookBook.Configurations.Mapping;
 
-// (для себя) Аналогично RecipeMappingProfile: попробуй прибраться после коммита
+// (todo) Прибраться
 public class IngredientMappingProfile : Profile
 {
     public IngredientMappingProfile()

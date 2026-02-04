@@ -1,9 +1,9 @@
-﻿using AutoMapper;
+﻿using CookBook.Contracts;
 using CookBook.Abstractions;
-using CookBook.Exceptions;
 using CookBook.Models;
+using CookBook.Exceptions;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using CookBook.Contracts;
 
 namespace CookBook.Services;
 

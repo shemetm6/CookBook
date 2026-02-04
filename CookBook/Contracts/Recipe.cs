@@ -27,7 +27,6 @@ public record RecipeInListVm(int Id, string Title, double? AverageRating);
 public record ListOfRecipes(List<RecipeInListVm> Recipes);
 
 public record CreateRecipeDto(
-    int UserId,
     string Title,
     double CookTime,
     TimeUnit TimeUnit,

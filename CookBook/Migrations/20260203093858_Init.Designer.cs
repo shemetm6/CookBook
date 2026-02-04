@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CookBook.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260129104006_AddUserModel")]
-    partial class AddUserModel
+    [Migration("20260203093858_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -67,6 +67,35 @@ namespace CookBook.Migrations
                     b.ToTable("IngredientsInRecipes");
                 });
 
+            modelBuilder.Entity("CookBook.Models.JwtToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("JwtTokens");
+                });
+
             modelBuilder.Entity("CookBook.Models.Recipe", b =>
                 {
                     b.Property<int>("Id")
@@ -92,7 +121,12 @@ namespace CookBook.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Recipes");
                 });
@@ -110,10 +144,10 @@ namespace CookBook.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<string>("Password")
+                    b.Property<byte[]>("Password")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("bytea");
 
                     b.HasKey("Id");
 
@@ -142,6 +176,28 @@ namespace CookBook.Migrations
                     b.Navigation("Recipe");
                 });
 
+            modelBuilder.Entity("CookBook.Models.JwtToken", b =>
+                {
+                    b.HasOne("CookBook.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("CookBook.Models.JwtToken", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CookBook.Models.Recipe", b =>
+                {
+                    b.HasOne("CookBook.Models.User", "User")
+                        .WithMany("Recipes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CookBook.Models.Ingredient", b =>
                 {
                     b.Navigation("Recipes");
@@ -150,6 +206,11 @@ namespace CookBook.Migrations
             modelBuilder.Entity("CookBook.Models.Recipe", b =>
                 {
                     b.Navigation("Ingredients");
+                });
+
+            modelBuilder.Entity("CookBook.Models.User", b =>
+                {
+                    b.Navigation("Recipes");
                 });
 #pragma warning restore 612, 618
         }

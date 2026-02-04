@@ -1,38 +1,98 @@
 ﻿using CookBook.Abstractions;
-using Microsoft.AspNetCore.Mvc;
 using CookBook.Contracts;
+using CookBook.Extensions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CookBook.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class UsersController : ControllerBase
+public class UsersController : BaseController
 {
     private readonly IUserService _userService;
+    private readonly IAuthService _authService;
 
-    public UsersController(IUserService userService)
-        => _userService = userService;
-
-    [HttpPost]
-    public ActionResult<int> AddUser(CreateUserDto dto)
+    public UsersController(
+        IUserService userService,
+        IAuthService authService
+        )
     {
-        var id = _userService.AddUser(dto);
-
-        return Ok(id);
+        _userService = userService;
+        _authService = authService;
     }
 
-    [HttpPut("{id}")]
-    public ActionResult UpdateUser(int id, UpdateUserDto dto)
+    [AllowAnonymous]
+    [HttpPost("signup")]
+    public ActionResult<LogInResponse> SignUp([FromBody] SignUpDto dto)
     {
-        _userService.UpdateUser(id, dto);
+        var token = _authService.SignUp(dto);
+
+        return Ok(token);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public ActionResult<LogInResponse> LogIn([FromBody] LogInDto dto)
+    {
+        var token = _authService.LogIn(dto);
+
+        if (token is null)
+            return NotFound();
+
+        return Ok(token);
+    }
+
+    [HttpPost("logout")]
+    public ActionResult<bool> LogOut([FromBody] int id)
+    {
+        var result = _authService.LogOut(id);
+
+        if (!result)
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [HttpPost("refresh")]
+    public ActionResult<LogInResponse> Refresh([FromBody] string refreshToken)
+    {
+        var result = _authService.Refresh(refreshToken);
+
+        if (result is null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [HttpPost("revoke")]
+    public ActionResult Revoke([FromBody] string refreshToken)
+    {
+        _authService.Revoke(refreshToken);
 
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
-    public ActionResult DeleteUser(int id)
+    [HttpPut]
+    public ActionResult UpdateUser(UpdateUserDto dto)
     {
-        _userService.DeleteUser(id);
+        var id = HttpContext.ExtractUserIdFromClaims();
+
+        if (id is null)
+            return Unauthorized();
+
+        _userService.UpdateUser(id.Value, dto);
+
+        return NoContent();
+    }
+
+    [HttpDelete]
+    public ActionResult DeleteUser()
+    {
+        var id = HttpContext.ExtractUserIdFromClaims();
+
+        if (id is null)
+            return Unauthorized();
+
+        _userService.DeleteUser(id.Value);
 
         return NoContent();
     }

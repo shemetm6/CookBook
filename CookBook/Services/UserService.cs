@@ -1,9 +1,8 @@
-﻿using AutoMapper;
+﻿using CookBook.Contracts;
 using CookBook.Abstractions;
-using CookBook.Contracts;
-using Microsoft.EntityFrameworkCore;
-using CookBook.Models;
 using CookBook.Exceptions;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace CookBook.Services;
 
@@ -21,17 +20,10 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public int AddUser(CreateUserDto dto)
-    {
-        var user = _mapper.Map<User>(dto);
-
-        _applicationDbContext.Users.Add(user);
-
-        _applicationDbContext.SaveChanges();
-
-        return user.Id;
-    }
-
+    // AddUser удалён за ненадобностью.
+    // Получается у меня UserService отвечает за работу с юзером
+    // А AuthService за создание, аутентификацию и авторизацию юзера
+    // Выглядит странновато
     public void UpdateUser(int id, UpdateUserDto dto)
     {
         var user = _applicationDbContext.Users.FirstOrDefault(u => u.Id == id);
@@ -39,9 +31,7 @@ public class UserService : IUserService
         if (user is null)
             throw new UserNotFoundException(id);
 
-        // Переписал с примера в pdf'ке про СУБД и не понимаю с чего dto.Login может быть null.
-        // В контракте мы это свойство не делали nullable.
-        user.Login = dto.Login ?? user.Login;
+        user.Login = dto.Login;
 
         _applicationDbContext.SaveChanges();
     }

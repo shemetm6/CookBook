@@ -5,10 +5,12 @@ namespace CookBook.Abstractions;
 
 public interface IApplicationDbContext
 {
-    public DbSet<User> Users { get; set; }
-    public DbSet<Ingredient> Ingredients { get; }
-    public DbSet<Recipe> Recipes { get; }
-    public DbSet<IngredientInRecipe> IngredientsInRecipes { get; }
+    DbSet<User> Users { get; set; }
+    DbSet<Ingredient> Ingredients { get; }
+    DbSet<Recipe> Recipes { get; }
+    DbSet<IngredientInRecipe> IngredientsInRecipes { get; }
+    DbSet<JwtToken> JwtTokens { get; set; }
+    DbSet<RefreshToken> RefreshTokens { get; set; }
 
-    public int SaveChanges();
+    int SaveChanges();
 }

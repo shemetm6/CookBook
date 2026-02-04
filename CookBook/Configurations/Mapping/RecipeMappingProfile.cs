@@ -1,16 +1,14 @@
-﻿using AutoMapper;
-using CookBook.Models;
+﻿using CookBook.Models;
 using CookBook.Contracts;
+using AutoMapper;
 
 namespace CookBook.Configurations.Mapping;
 
+// (todo) Прибраться
 public class RecipeMappingProfile : Profile
 {
     public RecipeMappingProfile()
     {
-        // Меня смущает объем этого блока. Но! Чатгпт сказал, что если ты один раз вызываешь ForCtorParam,
-        // то AutoMapper считает, что ты взял управление на себя и сам уже ничего не сопоставляет.
-        // И у меня действительно не получалось сделать get запрос по id рецепта, пока я это всё не прописал
         CreateMap<IngredientInRecipe, IngredientInRecipeVm>()
             .ForCtorParam(nameof(IngredientInRecipeVm.IngredientId),
             opt => opt.MapFrom(src => src.IngredientId))
@@ -21,8 +19,6 @@ public class RecipeMappingProfile : Profile
             .ForCtorParam(nameof(IngredientInRecipeVm.Units),
             opt => opt.MapFrom(src => src.Units));
 
-        // Но тогда какого хуя тут всё маппится нормально. Здесь указаны далеко не все свойства
-        // (для себя) Попробуй избавиться от лишнего после коммита
         CreateMap<Recipe, RecipeVm>()
             .ForCtorParam(nameof(RecipeVm.Ingredients),
             opt => opt.MapFrom(src => src.Ingredients))
@@ -46,7 +42,6 @@ public class RecipeMappingProfile : Profile
             .ForMember(dest => dest.Ingredient, opt => opt.Ignore());
 
         CreateMap<CreateRecipeDto, Recipe>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Ratings, opt => opt.Ignore())
             .ForMember(dest => dest.CookTime, opt => opt.Ignore())
             .ForMember(dest => dest.Ingredients, opt => opt.MapFrom(src => src.Ingredients));

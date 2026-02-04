@@ -1,12 +1,11 @@
 ﻿using CookBook.Abstractions;
-using Microsoft.AspNetCore.Mvc;
 using CookBook.Contracts;
+using CookBook.Extensions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CookBook.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class RecipesController : ControllerBase
+public class RecipesController : BaseController
 {
     private readonly IRecipeService _recipeService;
     public RecipesController(IRecipeService recipeRepository)
@@ -15,19 +14,33 @@ public class RecipesController : ControllerBase
     [HttpPost]
     public ActionResult<int> AddRecipe(CreateRecipeDto dto)
     {
-        var id = _recipeService.AddRecipe(dto);
+        // Нейронка предложила вынести поиск userId в метод BaseController
+        // Например GetCurrentUserId. Нормальная идея?
+        // Просто я хз, как BaseController обычно выглядит
+        var userId = HttpContext.ExtractUserIdFromClaims();
+        
+        if (userId is null)
+            return Unauthorized();
 
-        return Ok(id);
+        var recipeId = _recipeService.AddRecipe(dto, userId.Value);
+
+        return Ok(recipeId);
     }
 
     [HttpPut("{id}")]
     public ActionResult UpdateRecipe(int id, UpdateRecipeDto dto)
     {
-        _recipeService.UpdateRecipe(id, dto);
+        var userId = HttpContext.ExtractUserIdFromClaims();
+
+        if (userId is null)
+            return Unauthorized();
+
+        _recipeService.UpdateRecipe(id, dto, userId.Value);
 
         return NoContent();
     }
-    /* Work in progress
+
+    /* (todo) Внедрить рейтинг
     [HttpPut("{id}/raiting")]
     public ActionResult RateRecipe(int id, RateRecipeDto dto)
     {
@@ -36,10 +49,21 @@ public class RecipesController : ControllerBase
         return NoContent();
     }
     */
+
+    // Произошла какая то хуйня с policy.
+    // Т.е. если мне использовать ее, то тогда нужно указывать свой id в методах Delete/Update.
+    // При том, что если указать чужой id, то удалить/обновить рецепт мне не дадут.
+    // И у нас есть HttpContext из которого можно извлечь Id без участия юзера, главное чтобы он был залогинен
+    // Потому я не понял зачем использовать атрибут с политикой и убрал его, чтобы не заполнять лишнее поле в сваггере
     [HttpDelete("{id}")]
     public ActionResult DeleteRecipe(int id)
     {
-        _recipeService.DeleteRecipe(id);
+        var userId = HttpContext.ExtractUserIdFromClaims();
+
+        if (userId is null)
+            return Unauthorized();
+
+        _recipeService.DeleteRecipe(id, userId.Value);
 
         return NoContent();
     }

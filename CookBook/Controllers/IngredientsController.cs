@@ -1,12 +1,10 @@
 ﻿using CookBook.Abstractions;
-using Microsoft.AspNetCore.Mvc;
 using CookBook.Contracts;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CookBook.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class IngredientsController : ControllerBase
+public class IngredientsController : BaseController
 {
     private readonly IIngredientService _ingredientService;
 

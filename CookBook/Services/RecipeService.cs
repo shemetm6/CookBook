@@ -1,8 +1,8 @@
-﻿using AutoMapper;
+﻿using CookBook.Contracts;
 using CookBook.Abstractions;
-using CookBook.Contracts;
-using CookBook.Exceptions;
 using CookBook.Models;
+using CookBook.Exceptions;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace CookBook.Services;
@@ -24,17 +24,19 @@ public class RecipeService : IRecipeService
         _timeConverter = timeConverter;
     }
 
-    public int AddRecipe(CreateRecipeDto dto)
+    public int AddRecipe(CreateRecipeDto dto, int userId)
     {
         ThrowIfIngredientsNotExist(dto.Ingredients);
 
-        var userExists = _applicationDbContext.Users.Any(u => u.Id == dto.UserId);
+        var userExists = _applicationDbContext.Users.Any(u => u.Id == userId);
 
         if (!userExists)
-            throw new UserNotFoundException(dto.UserId);
+            throw new UserNotFoundException(userId);
 
         var recipe = _mapper.Map<Recipe>(dto);
 
+        recipe.UserId = userId;
+        
         recipe.CookTime = _timeConverter.Convert(dto.CookTime, dto.TimeUnit);
 
         foreach (var ingredientInRecipe in recipe.Ingredients)
@@ -52,12 +54,12 @@ public class RecipeService : IRecipeService
         return recipe.Id;
     }
 
-    public void UpdateRecipe(int recipeId, UpdateRecipeDto dto)
+    public void UpdateRecipe(int recipeId, UpdateRecipeDto dto, int userId)
     {
         var recipeToUpdate = _applicationDbContext.Recipes
             .Include(r => r.Ingredients) 
             .ThenInclude(ir => ir.Ingredient)
-            .FirstOrDefault(r => r.Id == recipeId);
+            .FirstOrDefault(r => r.Id == recipeId && r.UserId == userId);
 
         if (recipeToUpdate is null)
             throw new RecipeNotFoundException(recipeId);
@@ -89,10 +91,10 @@ public class RecipeService : IRecipeService
         _applicationDbContext.SaveChanges();
     }
 
-    public void DeleteRecipe(int id)
+    public void DeleteRecipe(int id, int userId)
     {
         var deletedRecipesCount = _applicationDbContext.Recipes
-            .Where(r => r.Id == id)
+            .Where(r => r.Id == id && r.UserId == userId)
             .ExecuteDelete();
 
         if(deletedRecipesCount == 0)
