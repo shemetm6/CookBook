@@ -21,10 +21,10 @@ public class RecipeEntityConfiguration : IEntityTypeConfiguration<Recipe>
             .IsRequired()
             .HasMaxLength(32000);
 
-        /* (todo) Внедрить рейтинг
-        builder.Property(r => r.Ratings)
-            .HasColumnType("integer[]");
-        */
+        builder.HasMany(r => r.Ratings)
+            .WithOne(rating => rating.Recipe)
+            .HasForeignKey(rating => rating.RecipeId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(r => r.Ingredients)
             .WithOne(ir => ir.Recipe)

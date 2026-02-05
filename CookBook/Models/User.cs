@@ -6,4 +6,5 @@ public class User
     public required string Login { get; set; }
     public byte[] Password { get; set; } = null!;
     public ICollection<Recipe> Recipes { get; set; } = [];
+    public ICollection<Rating> Ratings { get; set; } = [];
 }

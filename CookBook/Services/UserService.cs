@@ -20,10 +20,6 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    // AddUser удалён за ненадобностью.
-    // Получается у меня UserService отвечает за работу с юзером
-    // А AuthService за создание, аутентификацию и авторизацию юзера
-    // Выглядит странновато
     public void UpdateUser(int id, UpdateUserDto dto)
     {
         var user = _applicationDbContext.Users.FirstOrDefault(u => u.Id == id);
@@ -51,6 +47,9 @@ public class UserService : IUserService
         var user = _applicationDbContext.Users
             .AsNoTracking()
             .Include(u => u.Recipes.OrderBy(r => r.Id))
+            .ThenInclude(r => r.Ratings)
+            .Include(u => u.Ratings)
+            .ThenInclude(rating => rating.Recipe)
             .FirstOrDefault(u => u.Id == id);
 
         if (user is null)

@@ -13,7 +13,6 @@ public class JwtTokenGenerator(IOptions<JwtOptions> options) : IJwtTokenGenerato
 {
     private readonly JwtOptions _options = options.Value;
 
-    // В лекции этот метод почему-то возвращает string (стр.9)
     public JwtToken Generate(User user)
     {
         SigningCredentials credentials = new(
@@ -25,14 +24,12 @@ public class JwtTokenGenerator(IOptions<JwtOptions> options) : IJwtTokenGenerato
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.GivenName, user.Login),
-            // А нам точно нужен FamilyName? У нас ведь только логин
             new Claim(JwtRegisteredClaimNames.FamilyName, user.Login),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
         var now = DateTime.UtcNow;
         var expiration = now.AddMinutes(5);
 
-        // Я в ахуе, что так можно заполнять свойства при создании объекта
         JwtSecurityToken securityToken = new(
             issuer: _options.Issuer,
             audience: _options.Audience,

@@ -135,7 +135,6 @@ public class AuthService : IAuthService
         return (token, refreshToken);
     }
 
-    // Есть ощущение, что стоит использовать автомаппер, раз он есть
     private static LogInResponse CreateResponse(JwtToken jwt, RefreshToken refresh)
         => new(jwt.UserId, jwt.Token, refresh.Token);
 }

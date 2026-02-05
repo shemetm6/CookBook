@@ -15,9 +15,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<Recipe> Recipes { get; set; }
+    public DbSet<Rating> Ratings { get; set; }
     public DbSet<IngredientInRecipe> IngredientsInRecipes { get; set; }
-    public virtual DbSet<JwtToken> JwtTokens { get; set; }
-    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<JwtToken> JwtTokens { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,

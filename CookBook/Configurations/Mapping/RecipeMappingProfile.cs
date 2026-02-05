@@ -10,19 +10,19 @@ public class RecipeMappingProfile : Profile
     {
         CreateMap<IngredientInRecipe, IngredientInRecipeVm>()
             .ForCtorParam(nameof(IngredientInRecipeVm.IngredientName),
-            opt => opt.MapFrom(src => src.Ingredient!.Name));
+            opt => opt.MapFrom(src => src.Ingredient.Name));
 
         CreateMap<Recipe, RecipeVm>()
             .ForCtorParam(nameof(RecipeVm.UserLogin),
             opt => opt.MapFrom(src => src.User.Login))
             .ForCtorParam(nameof(RecipeVm.AverageRating),
-            opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Average() : (double?)null));
+            opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Select(r => r.Value).Average() : (double?)null));
 
         CreateMap<IngredientInRecipe, IngredientInRecipeCreateVm>();
 
         CreateMap<Recipe, RecipeInListVm>()
             .ForCtorParam(nameof(RecipeInListVm.AverageRating),
-            opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Average() : (double?)null));
+            opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Select(r => r.Value).Average() : (double?)null));
 
         CreateMap<IEnumerable<Recipe>, ListOfRecipes>()
             .ForCtorParam(nameof(ListOfRecipes.Recipes), opt => opt.MapFrom(src => src.ToList()));
@@ -34,5 +34,8 @@ public class RecipeMappingProfile : Profile
 
         CreateMap<UpdateRecipeDto, Recipe>()
             .ForMember(dest => dest.CookTime, opt => opt.Ignore());
+
+        CreateMap<RateRecipeDto, Rating>()
+            .ForMember(dest => dest.Value, opt => opt.MapFrom(src => (int)src.Rating));
     }
 }

@@ -108,6 +108,7 @@ public class RecipeService : IRecipeService
             .Include(r => r.User)
             .Include(r => r.Ingredients)
             .ThenInclude(ir => ir.Ingredient)
+            .Include(r => r.Ratings)
             .FirstOrDefault(r => r.Id == id);
 
         if (recipe is null)
@@ -119,17 +120,30 @@ public class RecipeService : IRecipeService
     public ListOfRecipes GetRecipes()
         => _mapper.Map<ListOfRecipes>(_applicationDbContext.Recipes
             .AsNoTracking()
+            .Include(r => r.Ratings)
             .OrderBy(r => r.Id)
             .ToList());
 
-    public void RateRecipe(int id, RateRecipeDto dto)
+    public void RateRecipe(int id, RateRecipeDto dto, int userId)
     {
-        var recipe = _applicationDbContext.Recipes.FirstOrDefault(r => r.Id == id);
+        var recipe = _applicationDbContext.Recipes
+            .Include(r => r.Ratings)
+            .FirstOrDefault(r => r.Id == id);
 
         if (recipe is null)
             throw new RecipeNotFoundException(id);
 
-        recipe.Ratings.Add((int)dto.Rating);
+        var existingRating = recipe.Ratings.FirstOrDefault(rating => rating.UserId == userId);
+
+        if (existingRating is not null)
+            throw new RatingAlreadyExistsException(id);
+
+        var rating = _mapper.Map<Rating>(dto);
+
+        rating.RecipeId = recipe.Id;
+        rating.UserId = userId;
+
+        recipe.Ratings.Add(rating);
 
         _applicationDbContext.SaveChanges();
     }

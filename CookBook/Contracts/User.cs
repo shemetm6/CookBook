@@ -1,8 +1,8 @@
 ﻿namespace CookBook.Contracts;
 
-// (todo) Внедрить рейтинг
-public record RecipeInUserVm(int Id, string Title);
-public record UserVm(int Id, string Login, List<RecipeInUserVm> Recipes);
+public record RecipeInUserVm(int Id, string Title, double? AverageRating);
+public record RatingInUserVm(int RecipeId, string RecipeTitle, int Value);
+public record UserVm(int Id, string Login, List<RecipeInUserVm> Recipes, List<RatingInUserVm> Ratings);
 public record UserInListVm(int Id, string Login);
 public record ListOfUsers(List<UserInListVm> Users);
 public record UpdateUserDto(string Login);

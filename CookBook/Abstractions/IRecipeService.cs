@@ -6,7 +6,7 @@ public interface IRecipeService
 {
     int AddRecipe(CreateRecipeDto dto, int userId);
     void UpdateRecipe(int id, UpdateRecipeDto dto, int userId);
-    void RateRecipe(int id, RateRecipeDto dto);
+    void RateRecipe(int id, RateRecipeDto dto, int userId);
     void DeleteRecipe(int id, int userId);
     ListOfRecipes GetRecipes();
     RecipeVm GetRecipe(int id);

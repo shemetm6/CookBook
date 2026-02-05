@@ -15,9 +15,6 @@ public class RecipesController : BaseController
     [HttpPost]
     public ActionResult<int> AddRecipe(CreateRecipeDto dto)
     {
-        // Нейронка предложила вынести поиск userId в метод BaseController
-        // Например GetCurrentUserId. Нормальная идея?
-        // Просто я хз, как BaseController обычно выглядит
         var userId = HttpContext.ExtractUserIdFromClaims();
         
         if (userId is null)
@@ -41,15 +38,22 @@ public class RecipesController : BaseController
         return NoContent();
     }
 
-    /* (todo) Внедрить рейтинг
+    // Мне не нравится, что приходится заполнять руками название константы из енума
+    // С одной стороны можно убрать dto и передавать значение енума, тогда в сваггере всё будет красиво
+    // С другой стороны мне уже приходится руками прописывать единицы измерения
+    // Так что наверное dto нормально смотрится
     [HttpPut("{id}/raiting")]
     public ActionResult RateRecipe(int id, RateRecipeDto dto)
     {
-        _recipeService.RateRecipe(id, dto);
+        var userId = HttpContext.ExtractUserIdFromClaims();
+
+        if (userId is null)
+            return Unauthorized();
+
+        _recipeService.RateRecipe(id, dto, userId.Value);
 
         return NoContent();
     }
-    */
 
     // Произошла какая то хуйня с policy.
     // Т.е. если мне использовать ее, то тогда нужно указывать свой id в методах Delete/Update.
