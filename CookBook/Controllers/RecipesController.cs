@@ -69,8 +69,14 @@ public class RecipesController : BaseController
 
     [AllowAnonymous]
     [HttpGet]
-    public ActionResult<ListOfRecipes> GetRecipes()
-        => Ok(_recipeService.GetRecipes());
+    public ActionResult<ListOfRecipes> GetRecipes(
+        string? title, 
+        double? minRating, 
+        string? author,
+        string? sortBy,
+        bool? descending
+        )
+        => Ok(_recipeService.GetRecipes(title, minRating, author, sortBy, descending));
 
     [AllowAnonymous]
     [HttpGet("{id}")]

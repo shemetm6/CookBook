@@ -36,7 +36,7 @@ public class RecipeService : IRecipeService
         var recipe = _mapper.Map<Recipe>(dto);
 
         recipe.UserId = userId;
-        
+
         recipe.CookTime = _timeConverter.Convert(dto.CookTime, dto.TimeUnit);
 
         foreach (var ingredientInRecipe in recipe.Ingredients)
@@ -44,7 +44,7 @@ public class RecipeService : IRecipeService
             var existingIngredient = _applicationDbContext.Ingredients
                 .First(i => i.Id == ingredientInRecipe.IngredientId);
 
-            ingredientInRecipe.Recipe = recipe; 
+            ingredientInRecipe.Recipe = recipe;
             ingredientInRecipe.Ingredient = existingIngredient;
         }
 
@@ -57,7 +57,7 @@ public class RecipeService : IRecipeService
     public void UpdateRecipe(int recipeId, UpdateRecipeDto dto, int userId)
     {
         var recipeToUpdate = _applicationDbContext.Recipes
-            .Include(r => r.Ingredients) 
+            .Include(r => r.Ingredients)
             .ThenInclude(ir => ir.Ingredient)
             .FirstOrDefault(r => r.Id == recipeId && r.UserId == userId);
 
@@ -97,7 +97,7 @@ public class RecipeService : IRecipeService
             .Where(r => r.Id == id && r.UserId == userId)
             .ExecuteDelete();
 
-        if(deletedRecipesCount == 0)
+        if (deletedRecipesCount == 0)
             throw new RecipeNotFoundException(id);
     }
 
@@ -116,13 +116,51 @@ public class RecipeService : IRecipeService
 
         return _mapper.Map<RecipeVm>(recipe);
     }
-    
-    public ListOfRecipes GetRecipes()
-        => _mapper.Map<ListOfRecipes>(_applicationDbContext.Recipes
+
+    public ListOfRecipes GetRecipes(
+        string? title,
+        double? minRating,
+        string? author,
+        string? sortBy,
+        bool? descending
+        )
+    {
+        // Оказывается после этой цепочки вернется IIncludableQueryable,
+        // так что в конце надо привести к обычному IQueryable
+        var query = _applicationDbContext.Recipes
             .AsNoTracking()
+            .Include(r => r.User)
             .Include(r => r.Ratings)
-            .OrderBy(r => r.Id)
-            .ToList());
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(title))
+            query = query.Where(recipe => recipe.Title.ToLower().Contains(title.Trim().ToLower()));
+
+        if (minRating is not null)
+            query = query.Where(recipe => recipe.Ratings.Average(rating => rating.Value) >= minRating);
+
+        if (!string.IsNullOrWhiteSpace(author))
+            query = query.Where(recipe => recipe.User.Login.Trim().ToLower().Contains(author.Trim().ToLower()));
+
+        query = sortBy?.Trim().ToLower() switch
+        {
+            "title" => descending == true
+            ? query.OrderByDescending(recipe => recipe.Title)
+            : query.OrderBy(recipe => recipe.Title),
+
+            "rating" => descending == true 
+            ? query.OrderByDescending(recipe => recipe.Ratings.Average(rating => rating.Value)) 
+            : query.OrderBy(recipe => recipe.Ratings.Average(rating => rating.Value)),
+
+            // По умолчанию (если не передать никакие аргументы для сортировки/фильтрации) будет сортировка по возрастанию Id рецепта
+            _ => descending == true 
+            ? query.OrderByDescending(recipe => recipe.Id)
+            : query.OrderBy(recipe => recipe.Id),
+        };
+
+        return _mapper.Map<ListOfRecipes>(query.ToList());
+    }
+
 
     public void RateRecipe(int id, RateRecipeDto dto, int userId)
     {

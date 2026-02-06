@@ -21,6 +21,8 @@ public class RecipeMappingProfile : Profile
         CreateMap<IngredientInRecipe, IngredientInRecipeCreateVm>();
 
         CreateMap<Recipe, RecipeInListVm>()
+            .ForCtorParam(nameof(RecipeInListVm.Author),
+            opt => opt.MapFrom(src => src.User.Login))
             .ForCtorParam(nameof(RecipeInListVm.AverageRating),
             opt => opt.MapFrom(src => src.Ratings.Count > 0 ? src.Ratings.Select(r => r.Value).Average() : (double?)null));
 

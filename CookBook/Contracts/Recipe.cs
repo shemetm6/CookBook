@@ -23,7 +23,7 @@ public record IngredientInRecipeCreateVm(
     QuantityUnit? Units
     );
 
-public record RecipeInListVm(int Id, string Title, double? AverageRating);
+public record RecipeInListVm(int Id, string Title, double? AverageRating, string Author);
 public record ListOfRecipes(List<RecipeInListVm> Recipes);
 
 public record CreateRecipeDto(
