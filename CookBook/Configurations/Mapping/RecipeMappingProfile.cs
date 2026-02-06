@@ -35,7 +35,6 @@ public class RecipeMappingProfile : Profile
         CreateMap<UpdateRecipeDto, Recipe>()
             .ForMember(dest => dest.CookTime, opt => opt.Ignore());
 
-        CreateMap<RateRecipeDto, Rating>()
-            .ForMember(dest => dest.Value, opt => opt.MapFrom(src => (int)src.Rating));
+        CreateMap<RateRecipeDto, Rating>();
     }
 }

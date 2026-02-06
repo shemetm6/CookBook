@@ -136,10 +136,13 @@ public class RecipeService : IRecipeService
         var existingRating = recipe.Ratings.FirstOrDefault(rating => rating.UserId == userId);
 
         if (existingRating is not null)
-            throw new RatingAlreadyExistsException(id);
+        {
+            existingRating.Value = dto.Value;
+            _applicationDbContext.SaveChanges();
+            return;
+        }
 
         var rating = _mapper.Map<Rating>(dto);
-
         rating.RecipeId = recipe.Id;
         rating.UserId = userId;
 

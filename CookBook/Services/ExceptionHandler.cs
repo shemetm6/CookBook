@@ -18,7 +18,6 @@ public class ExceptionHandler : IExceptionHandler
             IngredientNotFoundException => (int)HttpStatusCode.NotFound,
             UserNotFoundException => (int)HttpStatusCode.NotFound,
             ArgumentOutOfRangeException => (int)HttpStatusCode.BadRequest,
-            RatingAlreadyExistsException => (int)HttpStatusCode.Conflict,
             _ => (int)HttpStatusCode.InternalServerError,
         };
 

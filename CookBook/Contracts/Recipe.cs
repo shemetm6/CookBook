@@ -41,4 +41,4 @@ public record UpdateRecipeDto(
     string Description
     );
 
-public record RateRecipeDto(Rating Rating);
+public record RateRecipeDto(int Value);
