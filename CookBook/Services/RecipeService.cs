@@ -2,6 +2,7 @@
 using CookBook.Abstractions;
 using CookBook.Models;
 using CookBook.Exceptions;
+using CookBook.Enums;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -121,7 +122,7 @@ public class RecipeService : IRecipeService
         string? title,
         double? minRating,
         string? author,
-        string? sortBy,
+        RecipeSortBy? sortBy,
         bool? descending
         )
     {
@@ -140,15 +141,21 @@ public class RecipeService : IRecipeService
         if (!string.IsNullOrWhiteSpace(author))
             query = query.Where(recipe => recipe.User.Login.Trim().ToLower().Contains(author.Trim().ToLower()));
 
-        query = sortBy?.Trim().ToLower() switch
+        // По ТЗ сортировка по времени готовки не требовалась, но enum с двумя наименованиями выглядел печально.
+        // И я хотел посмотреть нормально ли будет сортироваться TimeSpan.
+        query = sortBy switch
         {
-            "title" => descending == true
+            RecipeSortBy.Title => descending == true
             ? query.OrderByDescending(recipe => recipe.Title)
             : query.OrderBy(recipe => recipe.Title),
 
-            "rating" => descending == true 
+            RecipeSortBy.Rating => descending == true 
             ? query.OrderByDescending(recipe => recipe.Ratings.Average(rating => rating.Value)) 
             : query.OrderBy(recipe => recipe.Ratings.Average(rating => rating.Value)),
+
+            RecipeSortBy.CookTime => descending == true
+            ? query.OrderByDescending(recipe => recipe.CookTime)
+            : query.OrderBy(recipe => recipe.CookTime),
 
             _ => descending == true 
             ? query.OrderByDescending(recipe => recipe.Id)

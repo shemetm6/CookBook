@@ -15,15 +15,15 @@ public record IngredientInRecipeVm(
     int IngredientId,
     string IngredientName,
     double Quantity,
-    QuantityUnit? Units
+    QuantityUnit Units
     );
 public record IngredientInRecipeCreateVm(
     int IngredientId,
     double Quantity,
-    QuantityUnit? Units
+    QuantityUnit Units
     );
 
-public record RecipeInListVm(int Id, string Title, double? AverageRating, string Author);
+public record RecipeInListVm(int Id, string Title, TimeSpan CookTime, double? AverageRating, string Author);
 public record ListOfRecipes(List<RecipeInListVm> Recipes);
 
 public record CreateRecipeDto(

@@ -2,7 +2,9 @@
 
 namespace CookBook.Configurations.Database;
 
-public class ApplicationDbContextSettings
+// Клод говорит, что атрибут Required не работает с параметрами конструктора, а работает только со свойствами.
+// Поэтому сокращенный синтаксис использовать не стал.
+public record ApplicationDbContextSettings
 {
     [Required]
     public required string Host { get; init; }

@@ -134,7 +134,7 @@ public class AuthService : IAuthService
         return (token, refreshToken);
     }
 
-    // (todo) По желанию сделать Mapping Profile 
+    // (todo) По желанию сделать Mapping Profile для однородности
     private static LogInResponse CreateResponse(JwtToken jwt, RefreshToken refresh)
         => new(jwt.UserId, jwt.Token, refresh.Token);
 }

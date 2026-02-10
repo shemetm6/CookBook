@@ -1,4 +1,5 @@
 ﻿using CookBook.Contracts;
+using CookBook.Enums;
 
 namespace CookBook.Abstractions;
 
@@ -12,7 +13,7 @@ public interface IRecipeService
         string? title,
         double? minRating,
         string? author,
-        string? sortBy,
+        RecipeSortBy? sortBy,
         bool? descending
         );
     Task<RecipeVm> GetRecipeAsync(int id);

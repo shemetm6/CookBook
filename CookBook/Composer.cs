@@ -1,5 +1,4 @@
 ﻿using CookBook.Services;
-using CookBook.Extensions;
 using CookBook.Database;
 using CookBook.Abstractions;
 using CookBook.Configurations.Database;
@@ -21,6 +20,64 @@ public static class Composer
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
+        IConfiguration configuration
+        )
+    {
+        services.AddJwtAuth(configuration);
+
+        services.AddValidatorsFromAssembly(typeof(Composer).Assembly);
+        services.AddFluentValidationAutoValidation();
+
+        services.AddAutoMapper(typeof(Composer).Assembly);
+
+        services.AddOptions<ApplicationDbContextSettings>()
+            .Bind(configuration.GetRequiredSection(nameof(ApplicationDbContextSettings)))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.Configure<ApplicationDbContextSettings>(
+            configuration.GetRequiredSection(nameof(ApplicationDbContextSettings)));
+
+        services.AddDbContext<IApplicationDbContext, ApplicationDbContext>();
+        services.AddExceptionHandler<ExceptionHandler>();
+
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
+        return services;
+    }
+
+    public static IServiceCollection AddSwagger(this IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+
+        services.AddSwaggerGen()
+            .AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>()
+            .AddAuthorization()
+            .AddAuthentication();
+
+        return services;
+    }
+
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddSingleton<ITimeConverter, TimeConverter>();
+
+        services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        services.AddScoped<IIngredientService, IngredientService>();
+        services.AddScoped<IRecipeService, RecipeService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAuthService, AuthService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddJwtAuth(
+        this IServiceCollection services, 
         IConfiguration configuration
         )
     {
@@ -85,52 +142,6 @@ public static class Composer
                 policy.AddRequirements(new RecipeOwnerRequirement());
             });
         });
-
-        services.AddValidatorsFromAssembly(typeof(Composer).Assembly);
-        services.AddFluentValidationAutoValidation();
-
-        services.AddAutoMapper(typeof(Composer).Assembly);
-
-        services.AddOptions<ApplicationDbContextSettings>()
-            .Bind(configuration.GetRequiredSection(nameof(ApplicationDbContextSettings)))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.Configure<ApplicationDbContextSettings>(
-            configuration.GetRequiredSection(nameof(ApplicationDbContextSettings)));
-
-        services.AddDbContext<IApplicationDbContext, ApplicationDbContext>();
-        services.AddExceptionHandler<ExceptionHandler>();
-
-        services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            });
-
-        return services;
-    }
-
-    public static IServiceCollection AddSwagger(this IServiceCollection services)
-    {
-        services.AddEndpointsApiExplorer();
-
-        services.AddSwaggerGen()
-            .AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>()
-            .AddAuthorization()
-            .AddAuthentication();
-
-        return services;
-    }
-
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
-    {
-        services.AddTimeConverter();
-        services.AddIngredientService();
-        services.AddRecipeService();
-        services.AddUserService();
-        services.AddAuthService();
-        services.AddJwtTokenGenerator();
 
         return services;
     }

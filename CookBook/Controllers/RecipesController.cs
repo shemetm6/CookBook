@@ -1,5 +1,6 @@
 ﻿using CookBook.Abstractions;
 using CookBook.Contracts;
+using CookBook.Enums;
 using CookBook.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -73,7 +74,7 @@ public class RecipesController : BaseController
         string? title,
         double? minRating,
         string? author,
-        string? sortBy,
+        RecipeSortBy? sortBy,
         bool? descending
         )
     {
