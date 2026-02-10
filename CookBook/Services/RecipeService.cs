@@ -24,11 +24,11 @@ public class RecipeService : IRecipeService
         _timeConverter = timeConverter;
     }
 
-    public int AddRecipe(CreateRecipeDto dto, int userId)
+    public async Task<int> AddRecipeAsync(CreateRecipeDto dto, int userId)
     {
-        ThrowIfIngredientsNotExist(dto.Ingredients);
+        await ThrowIfIngredientsNotExistAsync(dto.Ingredients);
 
-        var userExists = _applicationDbContext.Users.Any(u => u.Id == userId);
+        var userExists = await _applicationDbContext.Users.AnyAsync(u => u.Id == userId);
 
         if (!userExists)
             throw new UserNotFoundException(userId);
@@ -41,30 +41,30 @@ public class RecipeService : IRecipeService
 
         foreach (var ingredientInRecipe in recipe.Ingredients)
         {
-            var existingIngredient = _applicationDbContext.Ingredients
-                .First(i => i.Id == ingredientInRecipe.IngredientId);
+            var existingIngredient = await _applicationDbContext.Ingredients
+                .FirstAsync(i => i.Id == ingredientInRecipe.IngredientId);
 
             ingredientInRecipe.Recipe = recipe;
             ingredientInRecipe.Ingredient = existingIngredient;
         }
 
-        _applicationDbContext.Recipes.Add(recipe);
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.Recipes.AddAsync(recipe);
+        await _applicationDbContext.SaveChangesAsync();
 
         return recipe.Id;
     }
 
-    public void UpdateRecipe(int recipeId, UpdateRecipeDto dto, int userId)
+    public async Task UpdateRecipeAsync(int recipeId, UpdateRecipeDto dto, int userId)
     {
-        var recipeToUpdate = _applicationDbContext.Recipes
+        var recipeToUpdate = await _applicationDbContext.Recipes
             .Include(r => r.Ingredients)
             .ThenInclude(ir => ir.Ingredient)
-            .FirstOrDefault(r => r.Id == recipeId && r.UserId == userId);
+            .FirstOrDefaultAsync(r => r.Id == recipeId && r.UserId == userId);
 
         if (recipeToUpdate is null)
             throw new RecipeNotFoundException(recipeId);
 
-        ThrowIfIngredientsNotExist(dto.Ingredients);
+        await ThrowIfIngredientsNotExistAsync(dto.Ingredients);
 
         foreach (var ingredientInRecipe in recipeToUpdate.Ingredients.ToList())
         {
@@ -75,8 +75,8 @@ public class RecipeService : IRecipeService
         {
             var ingredientInRecipe = _mapper.Map<IngredientInRecipe>(ingredientInRecipeVm);
 
-            var existingIngredient = _applicationDbContext.Ingredients
-                .First(i => i.Id == ingredientInRecipe.IngredientId);
+            var existingIngredient = await _applicationDbContext.Ingredients
+                .FirstAsync(i => i.Id == ingredientInRecipe.IngredientId);
 
             ingredientInRecipe.Recipe = recipeToUpdate;
             ingredientInRecipe.Ingredient = existingIngredient;
@@ -88,28 +88,28 @@ public class RecipeService : IRecipeService
         recipeToUpdate.Description = dto.Description;
         recipeToUpdate.CookTime = _timeConverter.Convert(dto.CookTime, dto.TimeUnit);
 
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
     }
 
-    public void DeleteRecipe(int id, int userId)
+    public async Task DeleteRecipeAsync(int id, int userId)
     {
-        var deletedRecipesCount = _applicationDbContext.Recipes
+        var deletedRecipesCount = await _applicationDbContext.Recipes
             .Where(r => r.Id == id && r.UserId == userId)
-            .ExecuteDelete();
+            .ExecuteDeleteAsync();
 
         if (deletedRecipesCount == 0)
             throw new RecipeNotFoundException(id);
     }
 
-    public RecipeVm GetRecipe(int id)
+    public async Task<RecipeVm> GetRecipeAsync(int id)
     {
-        var recipe = _applicationDbContext.Recipes
+        var recipe = await _applicationDbContext.Recipes
             .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.Ingredients)
             .ThenInclude(ir => ir.Ingredient)
             .Include(r => r.Ratings)
-            .FirstOrDefault(r => r.Id == id);
+            .FirstOrDefaultAsync(r => r.Id == id);
 
         if (recipe is null)
             throw new RecipeNotFoundException(id);
@@ -117,7 +117,7 @@ public class RecipeService : IRecipeService
         return _mapper.Map<RecipeVm>(recipe);
     }
 
-    public ListOfRecipes GetRecipes(
+    public async Task<ListOfRecipes> GetRecipesAsync(
         string? title,
         double? minRating,
         string? author,
@@ -125,8 +125,6 @@ public class RecipeService : IRecipeService
         bool? descending
         )
     {
-        // Оказывается после этой цепочки вернется IIncludableQueryable,
-        // так что в конце надо привести к обычному IQueryable
         var query = _applicationDbContext.Recipes
             .AsNoTracking()
             .Include(r => r.User)
@@ -152,21 +150,21 @@ public class RecipeService : IRecipeService
             ? query.OrderByDescending(recipe => recipe.Ratings.Average(rating => rating.Value)) 
             : query.OrderBy(recipe => recipe.Ratings.Average(rating => rating.Value)),
 
-            // По умолчанию (если не передать никакие аргументы для сортировки/фильтрации) будет сортировка по возрастанию Id рецепта
             _ => descending == true 
             ? query.OrderByDescending(recipe => recipe.Id)
             : query.OrderBy(recipe => recipe.Id),
         };
 
-        return _mapper.Map<ListOfRecipes>(query.ToList());
+        var recipes = await query.ToListAsync();
+
+        return _mapper.Map<ListOfRecipes>(recipes);
     }
 
-
-    public void RateRecipe(int id, RateRecipeDto dto, int userId)
+    public async Task RateRecipeAsync(int id, RateRecipeDto dto, int userId)
     {
-        var recipe = _applicationDbContext.Recipes
+        var recipe = await _applicationDbContext.Recipes
             .Include(r => r.Ratings)
-            .FirstOrDefault(r => r.Id == id);
+            .FirstOrDefaultAsync(r => r.Id == id);
 
         if (recipe is null)
             throw new RecipeNotFoundException(id);
@@ -176,7 +174,9 @@ public class RecipeService : IRecipeService
         if (existingRating is not null)
         {
             existingRating.Value = dto.Value;
-            _applicationDbContext.SaveChanges();
+
+            await _applicationDbContext.SaveChangesAsync();
+
             return;
         }
 
@@ -186,19 +186,19 @@ public class RecipeService : IRecipeService
 
         recipe.Ratings.Add(rating);
 
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
     }
 
-    private void ThrowIfIngredientsNotExist(IEnumerable<IngredientInRecipeCreateVm> ingredients)
+    private async Task ThrowIfIngredientsNotExistAsync(IEnumerable<IngredientInRecipeCreateVm> ingredients)
     {
         var dtoIngredientIds = ingredients
             .Select(i => i.IngredientId)
             .ToList();
 
-        var existingIngredientIds = _applicationDbContext.Ingredients
+        var existingIngredientIds = await _applicationDbContext.Ingredients
             .Where(i => dtoIngredientIds.Contains(i.Id))
             .Select(i => i.Id)
-            .ToList();
+            .ToListAsync();
 
         var invalidIngredientIds = dtoIngredientIds
             .Except(existingIngredientIds)

@@ -20,37 +20,37 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public void UpdateUser(int id, UpdateUserDto dto)
+    public async Task UpdateUserAsync(int id, UpdateUserDto dto)
     {
-        var user = _applicationDbContext.Users.FirstOrDefault(u => u.Id == id);
+        var user = await _applicationDbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
 
         if (user is null)
             throw new UserNotFoundException(id);
 
         user.Login = dto.Login;
 
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
     }
 
-    public void DeleteUser(int id)
+    public async Task DeleteUserAsync(int id)
     {
-        var deletedUsersCount = _applicationDbContext.Users
+        var deletedUsersCount = await _applicationDbContext.Users
             .Where(u => u.Id == id)
-            .ExecuteDelete();
+            .ExecuteDeleteAsync();
 
         if (deletedUsersCount == 0)
             throw new UserNotFoundException(id);
     }
 
-    public UserVm GetUser(int id)
+    public async Task<UserVm> GetUserAsync(int id)
     {
-        var user = _applicationDbContext.Users
+        var user = await _applicationDbContext.Users
             .AsNoTracking()
             .Include(u => u.Recipes.OrderBy(r => r.Id))
             .ThenInclude(r => r.Ratings)
             .Include(u => u.Ratings)
             .ThenInclude(rating => rating.Recipe)
-            .FirstOrDefault(u => u.Id == id);
+            .FirstOrDefaultAsync(u => u.Id == id);
 
         if (user is null)
             throw new UserNotFoundException(id);
@@ -58,9 +58,13 @@ public class UserService : IUserService
         return _mapper.Map<UserVm>(user);
     }
 
-    public ListOfUsers GetUsers()
-        => _mapper.Map<ListOfUsers>(_applicationDbContext.Users
+    public async Task<ListOfUsers> GetUsersAsync()
+    {
+        var users = await _applicationDbContext.Users
             .AsNoTracking()
             .OrderBy(r => r.Id)
-            .ToList());
+            .ToListAsync();
+
+        return _mapper.Map<ListOfUsers>(users);
+    }
 }

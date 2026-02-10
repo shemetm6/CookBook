@@ -4,7 +4,7 @@ namespace CookBook.Abstractions;
 
 public interface IIngredientService
 {
-    int AddIngredient(CreateIngredientDto dto);
-    ListOfIngredients GetIngredients();
-    IngredientVm GetIngredient(int id);
+    Task<int> AddIngredientAsync(CreateIngredientDto dto);
+    Task<ListOfIngredients> GetIngredientsAsync();
+    Task<IngredientVm> GetIngredientAsync(int id);
 }

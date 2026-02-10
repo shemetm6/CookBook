@@ -13,16 +13,28 @@ public class IngredientsController : BaseController
         => _ingredientService = ingredientService;
 
     [HttpPost]
-    public ActionResult<int> CreateIngredient(CreateIngredientDto dto) 
-        => Ok(_ingredientService.AddIngredient(dto));
+    public async Task<ActionResult<int>> CreateIngredient(CreateIngredientDto dto)
+    {
+        var ingredient = await _ingredientService.AddIngredientAsync(dto);
+
+        return Ok(ingredient);
+    }
 
     [AllowAnonymous]
     [HttpGet]
-    public ActionResult<ListOfIngredients> GetIngredients() 
-        => Ok(_ingredientService.GetIngredients());
+    public async Task<ActionResult<ListOfIngredients>> GetIngredients()
+    {
+        var ingredients = await _ingredientService.GetIngredientsAsync();
+
+        return Ok(ingredients);
+    }
 
     [AllowAnonymous]
     [HttpGet("{id}")]
-    public ActionResult<IngredientVm> GetIngredient(int id)
-        => Ok(_ingredientService.GetIngredient(id));
+    public async Task<ActionResult<IngredientVm>> GetIngredient(int id)
+    {
+        var ingredient = await _ingredientService.GetIngredientAsync(id);
+
+        return Ok(ingredient);
+    }
 }

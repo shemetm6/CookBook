@@ -4,10 +4,10 @@ namespace CookBook.Abstractions;
 
 public interface IAuthService
 {
-    LogInResponse SignUp(SignUpDto dto);
-    LogInResponse? LogIn(LogInDto dto);
-    bool LogOut(int userId);
-    bool VerifyToken(int userId, string token);
-    LogInResponse? Refresh(string refreshToken);
-    void Revoke(string refreshToken);
+    Task<LogInResponse> SignUpAsync(SignUpDto dto);
+    Task<LogInResponse?> LogInAsync(LogInDto dto);
+    Task<bool> LogOutAsync(int userId);
+    Task<bool> VerifyTokenAsync(int userId, string token);
+    Task<LogInResponse?> RefreshAsync(string refreshToken);
+    Task RevokeAsync(string refreshToken);
 }

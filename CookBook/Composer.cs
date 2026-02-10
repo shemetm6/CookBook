@@ -20,7 +20,7 @@ namespace CookBook;
 public static class Composer
 {
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration
         )
     {
@@ -55,10 +55,12 @@ public static class Composer
                         .GetRequiredService<IAuthService>();
 
                         var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+
                         if (userId is null
                         || context.SecurityToken.ValidTo < DateTime.UtcNow
-                        || !authService.VerifyToken(int.Parse(userId),
-                            context.SecurityToken.UnsafeToString()))
+                        || !authService.VerifyTokenAsync(int.Parse(userId),
+                            context.SecurityToken.UnsafeToString())
+                            .GetAwaiter().GetResult())
                         {
                             context.Fail("Unauthorized");
                         }

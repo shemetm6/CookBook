@@ -21,27 +21,31 @@ public class IngredientService : IIngredientService
         _mapper = mapper;
     }
 
-    public int AddIngredient(CreateIngredientDto dto)
+    public async Task<int> AddIngredientAsync(CreateIngredientDto dto)
     {
         var ingredient = _mapper.Map<Ingredient>(dto);
 
-        _applicationDbContext.Ingredients.Add(ingredient);
+        await _applicationDbContext.Ingredients.AddAsync(ingredient);
 
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
 
         return ingredient.Id;
     }
 
-    public ListOfIngredients GetIngredients() 
-        => _mapper.Map<ListOfIngredients>(_applicationDbContext.Ingredients.AsNoTracking().ToList());
-
-    public IngredientVm GetIngredient(int id)
+    public async Task<ListOfIngredients> GetIngredientsAsync()
     {
-        var ingredient = _applicationDbContext.Ingredients
+        var ingredients = await _applicationDbContext.Ingredients.AsNoTracking().ToListAsync();
+
+        return _mapper.Map<ListOfIngredients>(ingredients);
+    }
+
+    public async Task<IngredientVm> GetIngredientAsync(int id)
+    {
+        var ingredient = await _applicationDbContext.Ingredients
             .AsNoTracking()
             .Include(i => i.Recipes)
             .ThenInclude(ir => ir.Recipe)
-            .FirstOrDefault(i => i.Id == id);
+            .FirstOrDefaultAsync(i => i.Id == id);
 
         if (ingredient is null)
             throw new IngredientNotFoundException(id);

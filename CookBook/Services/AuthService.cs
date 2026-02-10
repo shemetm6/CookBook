@@ -20,10 +20,9 @@ public class AuthService : IAuthService
         _jwtTokenGenerator = jwtTokenGenerator;
     }
 
-    public LogInResponse? LogIn(LogInDto dto)
+    public async Task<LogInResponse?> LogInAsync(LogInDto dto)
     {
-        var user = _applicationDbContext.Users
-            .FirstOrDefault(u => u.Login == dto.Login);
+        var user = await _applicationDbContext.Users.FirstOrDefaultAsync(u => u.Login == dto.Login);
 
         if (user is null)
             return null;
@@ -31,34 +30,34 @@ public class AuthService : IAuthService
         if (!PasswordHasher.VerifyPassword(user.Password, dto.Password))
             return null;
         
-        var (jwt, refresh) = UpdateToken(user);
+        var (jwt, refresh) = await UpdateTokenAsync(user);
 
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
 
         return CreateResponse(jwt, refresh);
     }
 
-    public bool LogOut(int userId)
+    public async Task<bool> LogOutAsync(int userId)
     {
-        var user = _applicationDbContext.Users
-            .FirstOrDefault(u => u.Id == userId);
+        var user = await _applicationDbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user is null)
             return false;
 
-        var token = _applicationDbContext.JwtTokens
-            .FirstOrDefault(t => t.UserId == userId);
+        var token = await _applicationDbContext.JwtTokens
+            .FirstOrDefaultAsync(t => t.UserId == userId);
 
         if (token is null)
             return false;
 
         _applicationDbContext.JwtTokens.Remove(token);
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
 
         return true;
     }
 
-    public LogInResponse SignUp(SignUpDto dto)
+    public async Task<LogInResponse> SignUpAsync(SignUpDto dto)
     {
         var user = new User
         {
@@ -66,20 +65,20 @@ public class AuthService : IAuthService
             Password = PasswordHasher.HashPassword(dto.Password),
         };
 
-        _applicationDbContext.Users.Add(user);
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.Users.AddAsync(user);
+        await _applicationDbContext.SaveChangesAsync();
 
-        var (jwt, refresh) = UpdateToken(user);
+        var (jwt, refresh) = await UpdateTokenAsync(user);
 
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
 
         return CreateResponse(jwt, refresh);
     }
 
-    public bool VerifyToken(int userId, string token)
+    public async Task<bool> VerifyTokenAsync(int userId, string token)
     {
-        var jwtToken = _applicationDbContext.JwtTokens
-            .FirstOrDefault(t => t.UserId == userId);
+        var jwtToken = await _applicationDbContext.JwtTokens
+            .FirstOrDefaultAsync(t => t.UserId == userId);
 
         if (jwtToken is null)
             return false;
@@ -87,54 +86,55 @@ public class AuthService : IAuthService
         return jwtToken.Token == token && jwtToken.ExpiresAt > DateTime.UtcNow;
     }
 
-    public LogInResponse? Refresh(string refreshToken)
+    public async Task<LogInResponse?> RefreshAsync(string refreshToken)
     {
-        var existingRefreshToken = _applicationDbContext.RefreshTokens
+        var existingRefreshToken = await _applicationDbContext.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefault(rt => rt.Token == refreshToken && rt.ExpiresAt > DateTime.UtcNow);
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.ExpiresAt > DateTime.UtcNow);
 
         if (existingRefreshToken is null)
             return null;
 
-        var (jwt, refresh) = UpdateToken(existingRefreshToken.User);
+        var (jwt, refresh) = await UpdateTokenAsync(existingRefreshToken.User);
 
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
 
         return CreateResponse(jwt, refresh);
     }
 
-    public void Revoke(string refreshToken)
+    public async Task RevokeAsync(string refreshToken)
     {
-        var existingRefreshToken = _applicationDbContext.RefreshTokens
+        var existingRefreshToken = await _applicationDbContext.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefault(rt => rt.Token == refreshToken && rt.ExpiresAt > DateTime.UtcNow);
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.ExpiresAt > DateTime.UtcNow);
 
         if (existingRefreshToken is null)
             return;
 
         _applicationDbContext.RefreshTokens.Remove(existingRefreshToken);
-        _applicationDbContext.SaveChanges();
+        await _applicationDbContext.SaveChangesAsync();
     }
 
-    private (JwtToken Jwt, RefreshToken Refresh) UpdateToken(User user)
+    private async Task<(JwtToken Jwt, RefreshToken Refresh)> UpdateTokenAsync(User user)
     {
         var token = _jwtTokenGenerator.Generate(user);
 
-        var oldToken = _applicationDbContext.JwtTokens
-            .FirstOrDefault(t => t.UserId == user.Id);
+        var oldToken = await _applicationDbContext.JwtTokens
+            .FirstOrDefaultAsync(t => t.UserId == user.Id);
         
         if (oldToken is not null)
             _applicationDbContext.JwtTokens.Remove(oldToken);
 
-        _applicationDbContext.JwtTokens.Add(token);
+        await _applicationDbContext.JwtTokens.AddAsync(token);
 
         var refreshToken = _jwtTokenGenerator.GetRefreshToken(user.Id);
 
-        _applicationDbContext.RefreshTokens.Add(refreshToken);
+        await _applicationDbContext.RefreshTokens.AddAsync(refreshToken);
 
         return (token, refreshToken);
     }
 
+    // (todo) По желанию сделать Mapping Profile 
     private static LogInResponse CreateResponse(JwtToken jwt, RefreshToken refresh)
         => new(jwt.UserId, jwt.Token, refresh.Token);
 }

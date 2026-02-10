@@ -22,18 +22,18 @@ public class UsersController : BaseController
 
     [AllowAnonymous]
     [HttpPost("signup")]
-    public ActionResult<LogInResponse> SignUp([FromBody] SignUpDto dto)
+    public async Task<ActionResult<LogInResponse>> SignUp([FromBody] SignUpDto dto)
     {
-        var token = _authService.SignUp(dto);
+        var token = await _authService.SignUpAsync(dto);
 
         return Ok(token);
     }
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public ActionResult<LogInResponse> LogIn([FromBody] LogInDto dto)
+    public async Task<ActionResult<LogInResponse>> LogIn([FromBody] LogInDto dto)
     {
-        var token = _authService.LogIn(dto);
+        var token = await _authService.LogInAsync(dto);
 
         if (token is null)
             return NotFound();
@@ -42,9 +42,9 @@ public class UsersController : BaseController
     }
 
     [HttpPost("logout")]
-    public ActionResult<bool> LogOut([FromBody] int id)
+    public async Task<ActionResult<bool>> LogOut([FromBody] int id)
     {
-        var result = _authService.LogOut(id);
+        var result = await _authService.LogOutAsync(id);
 
         if (!result)
             return NotFound();
@@ -53,9 +53,9 @@ public class UsersController : BaseController
     }
 
     [HttpPost("refresh")]
-    public ActionResult<LogInResponse> Refresh([FromBody] string refreshToken)
+    public async Task<ActionResult<LogInResponse>> Refresh([FromBody] string refreshToken)
     {
-        var result = _authService.Refresh(refreshToken);
+        var result = await _authService.RefreshAsync(refreshToken);
 
         if (result is null)
             return NotFound();
@@ -64,44 +64,52 @@ public class UsersController : BaseController
     }
 
     [HttpPost("revoke")]
-    public ActionResult Revoke([FromBody] string refreshToken)
+    public async Task<ActionResult> Revoke([FromBody] string refreshToken)
     {
-        _authService.Revoke(refreshToken);
+        await _authService.RevokeAsync(refreshToken);
 
         return NoContent();
     }
 
     [HttpPut]
-    public ActionResult UpdateUser(UpdateUserDto dto)
+    public async Task<ActionResult> UpdateUser(UpdateUserDto dto)
     {
         var id = HttpContext.ExtractUserIdFromClaims();
 
         if (id is null)
             return Unauthorized();
 
-        _userService.UpdateUser(id.Value, dto);
+        await _userService.UpdateUserAsync(id.Value, dto);
 
         return NoContent();
     }
 
     [HttpDelete]
-    public ActionResult DeleteUser()
+    public async Task<ActionResult> DeleteUser()
     {
         var id = HttpContext.ExtractUserIdFromClaims();
 
         if (id is null)
             return Unauthorized();
 
-        _userService.DeleteUser(id.Value);
+        await _userService.DeleteUserAsync(id.Value);
 
         return NoContent();
     }
 
     [HttpGet]
-    public ActionResult<ListOfUsers> GetUsers()
-        => Ok(_userService.GetUsers());
+    public async Task<ActionResult<ListOfUsers>> GetUsers()
+    {
+        var users = await _userService.GetUsersAsync();
 
+        return Ok(users);
+    }
+        
     [HttpGet("{id}")]
-    public ActionResult<UserVm> GetUser(int id)
-        => Ok(_userService.GetUser(id));
+    public async Task<ActionResult<UserVm>> GetUser(int id)
+    {
+        var user = await _userService.GetUserAsync(id);
+
+        return Ok(user);
+    }
 }

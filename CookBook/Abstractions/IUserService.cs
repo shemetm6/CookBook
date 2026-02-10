@@ -4,8 +4,8 @@ namespace CookBook.Abstractions;
 
 public interface IUserService
 {
-    void UpdateUser(int id, UpdateUserDto dto);
-    void DeleteUser(int id);
-    UserVm GetUser(int id);
-    ListOfUsers GetUsers();
+    Task UpdateUserAsync(int id, UpdateUserDto dto);
+    Task DeleteUserAsync(int id);
+    Task<UserVm> GetUserAsync(int id);
+    Task<ListOfUsers> GetUsersAsync();
 }
