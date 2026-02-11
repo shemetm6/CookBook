@@ -5,6 +5,7 @@ using CookBook.Exceptions;
 using CookBook.Enums;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper.QueryableExtensions;
 
 namespace CookBook.Services;
 
@@ -27,7 +28,7 @@ public class RecipeService : IRecipeService
 
     public async Task<int> AddRecipeAsync(CreateRecipeDto dto, int userId)
     {
-        await ThrowIfIngredientsNotExistAsync(dto.Ingredients);
+        var existingIngredients = await GetExistingIngredientsDictionaryOrThrowAsync(dto.Ingredients);
 
         var userExists = await _applicationDbContext.Users.AnyAsync(u => u.Id == userId);
 
@@ -37,16 +38,12 @@ public class RecipeService : IRecipeService
         var recipe = _mapper.Map<Recipe>(dto);
 
         recipe.UserId = userId;
-
         recipe.CookTime = _timeConverter.Convert(dto.CookTime, dto.TimeUnit);
 
         foreach (var ingredientInRecipe in recipe.Ingredients)
         {
-            var existingIngredient = await _applicationDbContext.Ingredients
-                .FirstAsync(i => i.Id == ingredientInRecipe.IngredientId);
-
             ingredientInRecipe.Recipe = recipe;
-            ingredientInRecipe.Ingredient = existingIngredient;
+            ingredientInRecipe.Ingredient = existingIngredients[ingredientInRecipe.IngredientId];
         }
 
         await _applicationDbContext.Recipes.AddAsync(recipe);
@@ -59,28 +56,21 @@ public class RecipeService : IRecipeService
     {
         var recipeToUpdate = await _applicationDbContext.Recipes
             .Include(r => r.Ingredients)
-            .ThenInclude(ir => ir.Ingredient)
             .FirstOrDefaultAsync(r => r.Id == recipeId && r.UserId == userId);
 
         if (recipeToUpdate is null)
             throw new RecipeNotFoundException(recipeId);
 
-        await ThrowIfIngredientsNotExistAsync(dto.Ingredients);
+        var existingIngredients = await GetExistingIngredientsDictionaryOrThrowAsync(dto.Ingredients);
 
-        foreach (var ingredientInRecipe in recipeToUpdate.Ingredients.ToList())
+        recipeToUpdate.Ingredients.Clear();
+
+        foreach (var ingredientInRecipeCreateVm in dto.Ingredients)
         {
-            recipeToUpdate.Ingredients.Remove(ingredientInRecipe);
-        }
-
-        foreach (var ingredientInRecipeVm in dto.Ingredients)
-        {
-            var ingredientInRecipe = _mapper.Map<IngredientInRecipe>(ingredientInRecipeVm);
-
-            var existingIngredient = await _applicationDbContext.Ingredients
-                .FirstAsync(i => i.Id == ingredientInRecipe.IngredientId);
+            var ingredientInRecipe = _mapper.Map<IngredientInRecipe>(ingredientInRecipeCreateVm);
 
             ingredientInRecipe.Recipe = recipeToUpdate;
-            ingredientInRecipe.Ingredient = existingIngredient;
+            ingredientInRecipe.Ingredient = existingIngredients[ingredientInRecipe.IngredientId];
 
             recipeToUpdate.Ingredients.Add(ingredientInRecipe);
         }
@@ -106,16 +96,14 @@ public class RecipeService : IRecipeService
     {
         var recipe = await _applicationDbContext.Recipes
             .AsNoTracking()
-            .Include(r => r.User)
-            .Include(r => r.Ingredients)
-            .ThenInclude(ir => ir.Ingredient)
-            .Include(r => r.Ratings)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .Where(r => r.Id == id)
+            .ProjectTo<RecipeVm>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
 
         if (recipe is null)
             throw new RecipeNotFoundException(id);
 
-        return _mapper.Map<RecipeVm>(recipe);
+        return recipe;
     }
 
     public async Task<ListOfRecipes> GetRecipesAsync(
@@ -126,11 +114,7 @@ public class RecipeService : IRecipeService
         bool? descending
         )
     {
-        var query = _applicationDbContext.Recipes
-            .AsNoTracking()
-            .Include(r => r.User)
-            .Include(r => r.Ratings)
-            .AsQueryable();
+        var query = _applicationDbContext.Recipes.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(title))
             query = query.Where(recipe => recipe.Title.ToLower().Contains(title.Trim().ToLower()));
@@ -141,8 +125,6 @@ public class RecipeService : IRecipeService
         if (!string.IsNullOrWhiteSpace(author))
             query = query.Where(recipe => recipe.User.Login.Trim().ToLower().Contains(author.Trim().ToLower()));
 
-        // По ТЗ сортировка по времени готовки не требовалась, но enum с двумя наименованиями выглядел печально.
-        // И я хотел посмотреть нормально ли будет сортироваться TimeSpan.
         query = sortBy switch
         {
             RecipeSortBy.Title => descending == true
@@ -162,7 +144,14 @@ public class RecipeService : IRecipeService
             : query.OrderBy(recipe => recipe.Id),
         };
 
-        var recipes = await query.ToListAsync();
+        var recipes = await query
+            .Select(r => new RecipeInListVm(
+            r.Id,
+            r.Title,
+            r.CookTime,
+            r.Ratings.Average(rating => rating.Value),
+            r.User.Login))
+            .ToListAsync();
 
         return _mapper.Map<ListOfRecipes>(recipes);
     }
@@ -196,22 +185,28 @@ public class RecipeService : IRecipeService
         await _applicationDbContext.SaveChangesAsync();
     }
 
-    private async Task ThrowIfIngredientsNotExistAsync(IEnumerable<IngredientInRecipeCreateVm> ingredients)
+    // Название просто пиздец, но лучше пока не придумал
+    // Варианты: GetExistingIngredientsDictionaryAsyncOrThrow - если принято Async писать в конце, то кал
+    // ValidateIngredientsAndGetDictionary - уже лучше, но как будто бы подразумевается возвращение bool
+    private async Task<Dictionary<int, Ingredient>> GetExistingIngredientsDictionaryOrThrowAsync(
+        IEnumerable<IngredientInRecipeCreateVm> ingredients
+        )
     {
         var dtoIngredientIds = ingredients
             .Select(i => i.IngredientId)
             .ToList();
 
-        var existingIngredientIds = await _applicationDbContext.Ingredients
+        var existingIngredients = await _applicationDbContext.Ingredients
             .Where(i => dtoIngredientIds.Contains(i.Id))
-            .Select(i => i.Id)
-            .ToListAsync();
+            .ToDictionaryAsync(i => i.Id);
 
         var invalidIngredientIds = dtoIngredientIds
-            .Except(existingIngredientIds)
+            .Except(existingIngredients.Keys)
             .ToList();
 
         if (invalidIngredientIds.Count != 0)
             throw new IngredientNotFoundException(invalidIngredientIds);
+
+        return existingIngredients;
     }
 }

@@ -4,6 +4,7 @@ using CookBook.Models;
 using CookBook.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper.QueryableExtensions;
 
 namespace CookBook.Services;
 
@@ -34,7 +35,9 @@ public class IngredientService : IIngredientService
 
     public async Task<ListOfIngredients> GetIngredientsAsync()
     {
-        var ingredients = await _applicationDbContext.Ingredients.AsNoTracking().ToListAsync();
+        var ingredients = await _applicationDbContext.Ingredients
+            .AsNoTracking()
+            .ToListAsync();
 
         return _mapper.Map<ListOfIngredients>(ingredients);
     }
@@ -43,13 +46,13 @@ public class IngredientService : IIngredientService
     {
         var ingredient = await _applicationDbContext.Ingredients
             .AsNoTracking()
-            .Include(i => i.Recipes)
-            .ThenInclude(ir => ir.Recipe)
-            .FirstOrDefaultAsync(i => i.Id == id);
+            .Where(i => i.Id == id)
+            .ProjectTo<IngredientVm>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
 
         if (ingredient is null)
             throw new IngredientNotFoundException(id);
 
-        return _mapper.Map<IngredientVm>(ingredient);
+        return ingredient;
     }
 }

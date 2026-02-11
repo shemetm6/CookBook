@@ -20,6 +20,7 @@ public class AuthService : IAuthService
         _jwtTokenGenerator = jwtTokenGenerator;
     }
 
+    // (todo) Если сделаешь Mapping Profile то вот тут сможешь избавиться от Include
     public async Task<LogInResponse?> LogInAsync(LogInDto dto)
     {
         var user = await _applicationDbContext.Users.FirstOrDefaultAsync(u => u.Login == dto.Login);
@@ -57,6 +58,7 @@ public class AuthService : IAuthService
         return true;
     }
 
+    // (todo) Если сделаешь Mapping Profile то вот тут сможешь избавиться от Include
     public async Task<LogInResponse> SignUpAsync(SignUpDto dto)
     {
         var user = new User
@@ -86,6 +88,7 @@ public class AuthService : IAuthService
         return jwtToken.Token == token && jwtToken.ExpiresAt > DateTime.UtcNow;
     }
 
+    // (todo) Если сделаешь Mapping Profile то вот тут сможешь избавиться от Include
     public async Task<LogInResponse?> RefreshAsync(string refreshToken)
     {
         var existingRefreshToken = await _applicationDbContext.RefreshTokens

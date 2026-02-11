@@ -3,6 +3,7 @@ using CookBook.Abstractions;
 using CookBook.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper.QueryableExtensions;
 
 namespace CookBook.Services;
 
@@ -46,16 +47,14 @@ public class UserService : IUserService
     {
         var user = await _applicationDbContext.Users
             .AsNoTracking()
-            .Include(u => u.Recipes.OrderBy(r => r.Id))
-            .ThenInclude(r => r.Ratings)
-            .Include(u => u.Ratings)
-            .ThenInclude(rating => rating.Recipe)
-            .FirstOrDefaultAsync(u => u.Id == id);
+            .Where(u => u.Id == id)
+            .ProjectTo<UserVm>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
 
         if (user is null)
             throw new UserNotFoundException(id);
 
-        return _mapper.Map<UserVm>(user);
+        return user;
     }
 
     public async Task<ListOfUsers> GetUsersAsync()

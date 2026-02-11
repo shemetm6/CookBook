@@ -7,7 +7,7 @@ public record RecipeVm(
     string Title,
     string UserLogin,
     TimeSpan CookTime,
-    List<IngredientInRecipeVm> Ingredients,
+    IReadOnlyCollection<IngredientInRecipeVm> Ingredients,
     string Description,
     double? AverageRating
     );
@@ -24,20 +24,20 @@ public record IngredientInRecipeCreateVm(
     );
 
 public record RecipeInListVm(int Id, string Title, TimeSpan CookTime, double? AverageRating, string Author);
-public record ListOfRecipes(List<RecipeInListVm> Recipes);
+public record ListOfRecipes(IReadOnlyList<RecipeInListVm> Recipes);
 
 public record CreateRecipeDto(
     string Title,
     double CookTime,
     TimeUnit TimeUnit,
-    List<IngredientInRecipeCreateVm> Ingredients,
+    IReadOnlyCollection<IngredientInRecipeCreateVm> Ingredients,
     string Description
     );
 public record UpdateRecipeDto(
     string Title,
     double CookTime,
     TimeUnit TimeUnit,
-    List<IngredientInRecipeCreateVm> Ingredients,
+    IReadOnlyCollection<IngredientInRecipeCreateVm> Ingredients,
     string Description
     );
 
