@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using FluentValidation;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using Microsoft.AspNetCore.HttpLogging;
 
 namespace CookBook;
 
@@ -46,6 +47,8 @@ public static class Composer
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
+
+        services.AddLogging();
 
         return services;
     }
@@ -141,6 +144,26 @@ public static class Composer
                 policy.RequireAuthenticatedUser();
                 policy.AddRequirements(new RecipeOwnerRequirement());
             });
+        });
+
+        return services;
+    }
+
+    private static IServiceCollection AddLogging(this IServiceCollection services)
+    {
+        services.AddHttpLogging(options =>
+        {
+            options.LoggingFields = HttpLoggingFields.RequestMethod
+            | HttpLoggingFields.RequestPath
+            | HttpLoggingFields.RequestQuery
+            | HttpLoggingFields.RequestHeaders
+            | HttpLoggingFields.RequestBody
+            | HttpLoggingFields.ResponseStatusCode
+            | HttpLoggingFields.ResponseHeaders
+            | HttpLoggingFields.ResponseBody
+            | HttpLoggingFields.Duration;
+
+            options.CombineLogs = true;
         });
 
         return services;

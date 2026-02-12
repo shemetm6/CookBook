@@ -2,7 +2,6 @@
 
 namespace CookBook.Configurations;
 
-// Не стал использовать сокращенный (positional) синтаксис по причине описанной в ApplicationDbContextSettings
 public record JwtOptions
 {
     [Required]

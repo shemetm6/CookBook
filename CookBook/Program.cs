@@ -10,6 +10,7 @@ builder.Services
 var app = builder.Build();
 
 app.UseExceptionHandler("/error");
+app.UseHttpLogging();
 
 if (app.Environment.IsDevelopment())
 {

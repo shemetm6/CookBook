@@ -52,9 +52,6 @@ public class RecipesController : BaseController
         return NoContent();
     }
 
-    // Не разобрался с policy и убрал соответствующий атрибут.
-    // Насколько я понял, при использовании созданной нами политики мне придется передавать в метод userId.
-    // А этого хотелось бы избежать т.к. userId это всегда Id авторизованного в данный момент пользователя.
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteRecipe(int id)
     {

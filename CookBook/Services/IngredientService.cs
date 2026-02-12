@@ -12,14 +12,17 @@ public class IngredientService : IIngredientService
 {
     private readonly IApplicationDbContext _applicationDbContext;
     private readonly IMapper _mapper;
+    private readonly ILogger<IngredientService> _logger;
 
     public IngredientService(
         IApplicationDbContext applicationDbContext, 
-        IMapper mapper
+        IMapper mapper,
+        ILogger<IngredientService> logger
         )
     {
         _applicationDbContext = applicationDbContext;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<int> AddIngredientAsync(CreateIngredientDto dto)
@@ -29,6 +32,8 @@ public class IngredientService : IIngredientService
         await _applicationDbContext.Ingredients.AddAsync(ingredient);
 
         await _applicationDbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Successfully added ingredient with {Id}", ingredient.Id);
 
         return ingredient.Id;
     }
@@ -51,7 +56,10 @@ public class IngredientService : IIngredientService
             .FirstOrDefaultAsync();
 
         if (ingredient is null)
+        {
+            _logger.LogError("Couldn't get ingredient with {Id}. Not found.", id);
             throw new IngredientNotFoundException(id);
+        }
 
         return ingredient;
     }

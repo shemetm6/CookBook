@@ -14,26 +14,43 @@ public class RecipeService : IRecipeService
     private readonly IApplicationDbContext _applicationDbContext;
     private readonly IMapper _mapper;
     private readonly ITimeConverter _timeConverter;
+    private readonly ILogger<RecipeService> _logger;
 
     public RecipeService(
         IApplicationDbContext applicationDbContext,
         IMapper mapper,
-        ITimeConverter timeConverter
+        ITimeConverter timeConverter,
+        ILogger<RecipeService> logger
     )
     {
         _applicationDbContext = applicationDbContext;
         _mapper = mapper;
         _timeConverter = timeConverter;
+        _logger = logger;
     }
 
     public async Task<int> AddRecipeAsync(CreateRecipeDto dto, int userId)
     {
-        var existingIngredients = await GetExistingIngredientsDictionaryOrThrowAsync(dto.Ingredients);
+        var existingIngredients = await GetIngredientsDictionaryOrThrowAsync(dto.Ingredients);
 
         var userExists = await _applicationDbContext.Users.AnyAsync(u => u.Id == userId);
 
         if (!userExists)
+        {
+            // Если мы не нашли юзера с таким id, то это проблема на стороне приложения
+            // т.к. userId вытаскивается из HttpContext.
+            // Исходя из этого как будто бы можно убрать выбрасывание исключения
+            // Но!
+            // Клод подкинул мыслю, что разные слои приложения не должны доверять друг другу
+            // Сегодня эти методы вызываются из контроллера, где проверка есть,
+            // а завтра их вызовут из другого места и напишут рандомный id
+            // Но!
+            // Тогда наверное и в остальных методах тоже надо делать проверку
+            // Т.е. для однородности надо либо убрать эту проверку либо добавить такую же в Delete и Update
+            // Как быть?
+            _logger.LogError("Couldn't get user with {UserId}. Not found.", userId);
             throw new UserNotFoundException(userId);
+        }
 
         var recipe = _mapper.Map<Recipe>(dto);
 
@@ -49,6 +66,8 @@ public class RecipeService : IRecipeService
         await _applicationDbContext.Recipes.AddAsync(recipe);
         await _applicationDbContext.SaveChangesAsync();
 
+        _logger.LogInformation("Successfully added recipe with {Id}", recipe.Id);
+
         return recipe.Id;
     }
 
@@ -59,9 +78,12 @@ public class RecipeService : IRecipeService
             .FirstOrDefaultAsync(r => r.Id == recipeId && r.UserId == userId);
 
         if (recipeToUpdate is null)
+        {
+            _logger.LogError("Couldn't get recipe with {RecipeId}. Not found.", recipeId);
             throw new RecipeNotFoundException(recipeId);
-
-        var existingIngredients = await GetExistingIngredientsDictionaryOrThrowAsync(dto.Ingredients);
+        }
+            
+        var existingIngredients = await GetIngredientsDictionaryOrThrowAsync(dto.Ingredients);
 
         recipeToUpdate.Ingredients.Clear();
 
@@ -79,6 +101,8 @@ public class RecipeService : IRecipeService
         recipeToUpdate.Description = dto.Description;
         recipeToUpdate.CookTime = _timeConverter.Convert(dto.CookTime, dto.TimeUnit);
 
+        _logger.LogInformation("Successfully updated recipe with {Id}", recipeToUpdate.Id);
+
         await _applicationDbContext.SaveChangesAsync();
     }
 
@@ -89,7 +113,12 @@ public class RecipeService : IRecipeService
             .ExecuteDeleteAsync();
 
         if (deletedRecipesCount == 0)
+        {
+            _logger.LogError("Couldn't get recipe with {Id}. Not found.", id);
             throw new RecipeNotFoundException(id);
+        }
+
+        _logger.LogInformation("Successfully deleted recipe with {Id}", id);
     }
 
     public async Task<RecipeVm> GetRecipeAsync(int id)
@@ -101,7 +130,10 @@ public class RecipeService : IRecipeService
             .FirstOrDefaultAsync();
 
         if (recipe is null)
+        {
+            _logger.LogError("Couldn't get recipe with {Id}. Not found.", id);
             throw new RecipeNotFoundException(id);
+        }
 
         return recipe;
     }
@@ -131,15 +163,15 @@ public class RecipeService : IRecipeService
             ? query.OrderByDescending(recipe => recipe.Title)
             : query.OrderBy(recipe => recipe.Title),
 
-            RecipeSortBy.Rating => descending == true 
-            ? query.OrderByDescending(recipe => recipe.Ratings.Average(rating => rating.Value)) 
+            RecipeSortBy.Rating => descending == true
+            ? query.OrderByDescending(recipe => recipe.Ratings.Average(rating => rating.Value))
             : query.OrderBy(recipe => recipe.Ratings.Average(rating => rating.Value)),
 
             RecipeSortBy.CookTime => descending == true
             ? query.OrderByDescending(recipe => recipe.CookTime)
             : query.OrderBy(recipe => recipe.CookTime),
 
-            _ => descending == true 
+            _ => descending == true
             ? query.OrderByDescending(recipe => recipe.Id)
             : query.OrderBy(recipe => recipe.Id),
         };
@@ -163,7 +195,10 @@ public class RecipeService : IRecipeService
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (recipe is null)
+        {
+            _logger.LogError("Couldn't get recipe with {Id}. Not found.", id);
             throw new RecipeNotFoundException(id);
+        }
 
         var existingRating = recipe.Ratings.FirstOrDefault(rating => rating.UserId == userId);
 
@@ -183,15 +218,16 @@ public class RecipeService : IRecipeService
         recipe.Ratings.Add(rating);
 
         await _applicationDbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Successfully rated recipe with {Id}", id);
     }
 
     // Название просто пиздец, но лучше пока не придумал
-    // Варианты: GetExistingIngredientsDictionaryAsyncOrThrow - если принято Async писать в конце, то кал
-    // ValidateIngredientsAndGetDictionary - уже лучше, но как будто бы подразумевается возвращение bool
-    private async Task<Dictionary<int, Ingredient>> GetExistingIngredientsDictionaryOrThrowAsync(
+    private async Task<Dictionary<int, Ingredient>> GetIngredientsDictionaryOrThrowAsync(
         IEnumerable<IngredientInRecipeCreateVm> ingredients
         )
     {
+        _logger.LogDebug("Obtaining ingredients from the database: {@Ingredients}", ingredients);
         var dtoIngredientIds = ingredients
             .Select(i => i.IngredientId)
             .ToList();
@@ -205,7 +241,10 @@ public class RecipeService : IRecipeService
             .ToList();
 
         if (invalidIngredientIds.Count != 0)
+        {
+            _logger.LogError("Couldn't get ingredients with {InvalidIngredientIds}. Not found.", string.Join(", ", invalidIngredientIds));
             throw new IngredientNotFoundException(invalidIngredientIds);
+        }
 
         return existingIngredients;
     }

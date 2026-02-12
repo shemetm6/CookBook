@@ -10,30 +10,41 @@ public class AuthService : IAuthService
 {
     private readonly IApplicationDbContext _applicationDbContext;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IApplicationDbContext applicationDbContext, 
-        IJwtTokenGenerator jwtTokenGenerator
+        IJwtTokenGenerator jwtTokenGenerator,
+        ILogger<AuthService> logger
         )
     {
         _applicationDbContext = applicationDbContext;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _logger = logger;
     }
 
-    // (todo) Если сделаешь Mapping Profile то вот тут сможешь избавиться от Include
+    // (todo) Если сделать Mapping Profile, то сможешь избавиться от Include
     public async Task<LogInResponse?> LogInAsync(LogInDto dto)
     {
         var user = await _applicationDbContext.Users.FirstOrDefaultAsync(u => u.Login == dto.Login);
 
         if (user is null)
+        {
+            _logger.LogWarning("Failed login. User with login {Login} not found.", dto.Login);
             return null;
+        }
 
         if (!PasswordHasher.VerifyPassword(user.Password, dto.Password))
+        {
+            _logger.LogWarning("Failed login. Wrong password for user {Id}.", user.Id);
             return null;
-        
+        }
+
         var (jwt, refresh) = await UpdateTokenAsync(user);
 
         await _applicationDbContext.SaveChangesAsync();
+
+        _logger.LogInformation("User {Id} successfully logged in", user.Id);
 
         return CreateResponse(jwt, refresh);
     }
@@ -44,21 +55,29 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user is null)
+        {
+            _logger.LogWarning("Failed logout. User with login {UserId} not found.", userId);
             return false;
+        }
 
         var token = await _applicationDbContext.JwtTokens
             .FirstOrDefaultAsync(t => t.UserId == userId);
 
         if (token is null)
+        {
+            _logger.LogWarning("Failed logout. Couldn't get token for user {UserId}.", userId);
             return false;
+        }
 
         _applicationDbContext.JwtTokens.Remove(token);
         await _applicationDbContext.SaveChangesAsync();
 
+        _logger.LogInformation("User {UserId} successfully logged out.", userId);
+
         return true;
     }
 
-    // (todo) Если сделаешь Mapping Profile то вот тут сможешь избавиться от Include
+    // (todo) Можно избавиться от Include. См. выше.
     public async Task<LogInResponse> SignUpAsync(SignUpDto dto)
     {
         var user = new User
@@ -74,6 +93,8 @@ public class AuthService : IAuthService
 
         await _applicationDbContext.SaveChangesAsync();
 
+        _logger.LogInformation("User {Id} successfully signed up.", user.Id);
+
         return CreateResponse(jwt, refresh);
     }
 
@@ -83,12 +104,22 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(t => t.UserId == userId);
 
         if (jwtToken is null)
+        {
+            _logger.LogWarning("Failed verifying. Couldn't get token for user {UserId}.", userId);
             return false;
+        }
 
-        return jwtToken.Token == token && jwtToken.ExpiresAt > DateTime.UtcNow;
+        var isValid = jwtToken.Token == token && jwtToken.ExpiresAt > DateTime.UtcNow;
+
+        if(!isValid)
+            _logger.LogWarning("Failed token verification for user {UserId}.", userId);
+
+        _logger.LogInformation("Token successfully verified for user {UserId}.", userId);
+
+        return isValid;
     }
 
-    // (todo) Если сделаешь Mapping Profile то вот тут сможешь избавиться от Include
+    // (todo) Можно избавиться от Include. См. выше.
     public async Task<LogInResponse?> RefreshAsync(string refreshToken)
     {
         var existingRefreshToken = await _applicationDbContext.RefreshTokens
@@ -96,11 +127,16 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.ExpiresAt > DateTime.UtcNow);
 
         if (existingRefreshToken is null)
+        {
+            _logger.LogWarning("Failed refreshing. Couldn't get refresh token.");
             return null;
+        }
 
         var (jwt, refresh) = await UpdateTokenAsync(existingRefreshToken.User);
 
         await _applicationDbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Token successfully refreshed for user {UserId}.", existingRefreshToken.UserId);
 
         return CreateResponse(jwt, refresh);
     }
@@ -112,14 +148,22 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.ExpiresAt > DateTime.UtcNow);
 
         if (existingRefreshToken is null)
+        {
+            _logger.LogWarning("Failed refreshing. Couldn't get refresh token.");
             return;
+        }
 
         _applicationDbContext.RefreshTokens.Remove(existingRefreshToken);
+
         await _applicationDbContext.SaveChangesAsync();
+        
+        _logger.LogInformation("Token successfully revoked for user {UserId}.", existingRefreshToken.UserId);
     }
 
     private async Task<(JwtToken Jwt, RefreshToken Refresh)> UpdateTokenAsync(User user)
     {
+        // Добавить ли сюда LogDebug по аналогии с приватным методом в RecipeService?
+        // Или это чувствительная информация и нахуй надо
         var token = _jwtTokenGenerator.Generate(user);
 
         var oldToken = await _applicationDbContext.JwtTokens
@@ -134,10 +178,13 @@ public class AuthService : IAuthService
 
         await _applicationDbContext.RefreshTokens.AddAsync(refreshToken);
 
+        // Стоит ли? Сомневаюсь опять же из-за ощущения, что это чувствительная инфа
+        //_logger.LogInformation("Token successfully updated for user {Id}.", user.Id);
+
         return (token, refreshToken);
     }
 
-    // (todo) По желанию сделать Mapping Profile для однородности
+    // (todo) По желанию сделать Mapping Profile
     private static LogInResponse CreateResponse(JwtToken jwt, RefreshToken refresh)
         => new(jwt.UserId, jwt.Token, refresh.Token);
 }
