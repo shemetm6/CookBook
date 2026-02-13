@@ -23,7 +23,6 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    // (todo) Если сделать Mapping Profile, то сможешь избавиться от Include
     public async Task<LogInResponse?> LogInAsync(LogInDto dto)
     {
         var user = await _applicationDbContext.Users.FirstOrDefaultAsync(u => u.Login == dto.Login);
@@ -77,7 +76,6 @@ public class AuthService : IAuthService
         return true;
     }
 
-    // (todo) Можно избавиться от Include. См. выше.
     public async Task<LogInResponse> SignUpAsync(SignUpDto dto)
     {
         var user = new User
@@ -113,13 +111,12 @@ public class AuthService : IAuthService
 
         if(!isValid)
             _logger.LogWarning("Failed token verification for user {UserId}.", userId);
-
-        _logger.LogInformation("Token successfully verified for user {UserId}.", userId);
+        else
+            _logger.LogInformation("Token successfully verified for user {UserId}.", userId);
 
         return isValid;
     }
 
-    // (todo) Можно избавиться от Include. См. выше.
     public async Task<LogInResponse?> RefreshAsync(string refreshToken)
     {
         var existingRefreshToken = await _applicationDbContext.RefreshTokens
@@ -162,8 +159,6 @@ public class AuthService : IAuthService
 
     private async Task<(JwtToken Jwt, RefreshToken Refresh)> UpdateTokenAsync(User user)
     {
-        // Добавить ли сюда LogDebug по аналогии с приватным методом в RecipeService?
-        // Или это чувствительная информация и нахуй надо
         var token = _jwtTokenGenerator.Generate(user);
 
         var oldToken = await _applicationDbContext.JwtTokens
@@ -178,13 +173,11 @@ public class AuthService : IAuthService
 
         await _applicationDbContext.RefreshTokens.AddAsync(refreshToken);
 
-        // Стоит ли? Сомневаюсь опять же из-за ощущения, что это чувствительная инфа
-        //_logger.LogInformation("Token successfully updated for user {Id}.", user.Id);
+        _logger.LogInformation("Token successfully updated for user {Id}.", user.Id);
 
         return (token, refreshToken);
     }
 
-    // (todo) По желанию сделать Mapping Profile
     private static LogInResponse CreateResponse(JwtToken jwt, RefreshToken refresh)
         => new(jwt.UserId, jwt.Token, refresh.Token);
 }

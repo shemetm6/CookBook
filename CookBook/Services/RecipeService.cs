@@ -31,29 +31,11 @@ public class RecipeService : IRecipeService
 
     public async Task<int> AddRecipeAsync(CreateRecipeDto dto, int userId)
     {
+        await EnsureUserExistsOrThrowAsync(userId);
+
         var existingIngredients = await GetIngredientsDictionaryOrThrowAsync(dto.Ingredients);
 
-        var userExists = await _applicationDbContext.Users.AnyAsync(u => u.Id == userId);
-
-        if (!userExists)
-        {
-            // Если мы не нашли юзера с таким id, то это проблема на стороне приложения
-            // т.к. userId вытаскивается из HttpContext.
-            // Исходя из этого как будто бы можно убрать выбрасывание исключения
-            // Но!
-            // Клод подкинул мыслю, что разные слои приложения не должны доверять друг другу
-            // Сегодня эти методы вызываются из контроллера, где проверка есть,
-            // а завтра их вызовут из другого места и напишут рандомный id
-            // Но!
-            // Тогда наверное и в остальных методах тоже надо делать проверку
-            // Т.е. для однородности надо либо убрать эту проверку либо добавить такую же в Delete и Update
-            // Как быть?
-            _logger.LogError("Couldn't get user with {UserId}. Not found.", userId);
-            throw new UserNotFoundException(userId);
-        }
-
         var recipe = _mapper.Map<Recipe>(dto);
-
         recipe.UserId = userId;
         recipe.CookTime = _timeConverter.Convert(dto.CookTime, dto.TimeUnit);
 
@@ -73,6 +55,8 @@ public class RecipeService : IRecipeService
 
     public async Task UpdateRecipeAsync(int recipeId, UpdateRecipeDto dto, int userId)
     {
+        await EnsureUserExistsOrThrowAsync(userId);
+
         var recipeToUpdate = await _applicationDbContext.Recipes
             .Include(r => r.Ingredients)
             .FirstOrDefaultAsync(r => r.Id == recipeId && r.UserId == userId);
@@ -108,6 +92,8 @@ public class RecipeService : IRecipeService
 
     public async Task DeleteRecipeAsync(int id, int userId)
     {
+        await EnsureUserExistsOrThrowAsync(userId);
+
         var deletedRecipesCount = await _applicationDbContext.Recipes
             .Where(r => r.Id == id && r.UserId == userId)
             .ExecuteDeleteAsync();
@@ -164,8 +150,8 @@ public class RecipeService : IRecipeService
             : query.OrderBy(recipe => recipe.Title),
 
             RecipeSortBy.Rating => descending == true
-            ? query.OrderByDescending(recipe => recipe.Ratings.Average(rating => rating.Value))
-            : query.OrderBy(recipe => recipe.Ratings.Average(rating => rating.Value)),
+            ? query.OrderByDescending(recipe => recipe.Ratings.Any() ? recipe.Ratings.Average(rating => rating.Value) : 0)
+            : query.OrderBy(recipe => recipe.Ratings.Any() ? recipe.Ratings.Average(rating => rating.Value) : 0),
 
             RecipeSortBy.CookTime => descending == true
             ? query.OrderByDescending(recipe => recipe.CookTime)
@@ -222,7 +208,6 @@ public class RecipeService : IRecipeService
         _logger.LogInformation("Successfully rated recipe with {Id}", id);
     }
 
-    // Название просто пиздец, но лучше пока не придумал
     private async Task<Dictionary<int, Ingredient>> GetIngredientsDictionaryOrThrowAsync(
         IEnumerable<IngredientInRecipeCreateVm> ingredients
         )
@@ -247,5 +232,16 @@ public class RecipeService : IRecipeService
         }
 
         return existingIngredients;
+    }
+
+    private async Task EnsureUserExistsOrThrowAsync(int userId)
+    {
+        var userExists = await _applicationDbContext.Users.AnyAsync(u => u.Id == userId);
+
+        if (!userExists)
+        {
+            _logger.LogError("Couldn't get user with {UserId}. Not found.", userId);
+            throw new UserNotFoundException(userId);
+        }
     }
 }

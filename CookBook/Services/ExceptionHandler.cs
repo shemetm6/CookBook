@@ -12,26 +12,29 @@ public class ExceptionHandler(ILogger<ExceptionHandler> logger) : IExceptionHand
         CancellationToken cancellationToken
         )
     {
-        httpContext.Response.StatusCode = exception switch
+        switch (exception)
         {
-            RecipeNotFoundException => (int)HttpStatusCode.NotFound,
-            RecipeIdDuplicateException => (int)HttpStatusCode.Conflict,
-            IngredientNotFoundException => (int)HttpStatusCode.NotFound,
-            UserNotFoundException => (int)HttpStatusCode.NotFound,
-            ArgumentOutOfRangeException => (int)HttpStatusCode.BadRequest,
-            _ => (int)HttpStatusCode.InternalServerError,
-        };
-
-        // Вынес логгирование сюда т.к. это единственное исключение,
-        // которое не логгируется в том сервисе, в котором выбрасывается
-        // А не логгируется оно там потому что я не понял как его в этот новомодный switch засунуть лол
-        // Это вообще нормально выглядит или странно?
-        if (exception is ArgumentOutOfRangeException)
-            logger.LogError(exception, "Invalid argument.");
-
-        // С вот этим логгированием у меня вопросов нет.
-        if (httpContext.Response.StatusCode == (int)HttpStatusCode.InternalServerError)
-            logger.LogError(exception, "An unexpected exception occurred.");
+            case RecipeNotFoundException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                break;
+            case RecipeIdDuplicateException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Conflict;
+                break;
+            case IngredientNotFoundException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                break;
+            case UserNotFoundException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                break;
+            case ArgumentOutOfRangeException:
+                logger.LogError(exception, "Invalid argument.");
+                httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                break;
+            default:
+                logger.LogError(exception, "An unexpected exception occurred.");
+                httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                break;
+        }
 
         await httpContext.Response.WriteAsync(exception.Message);
 

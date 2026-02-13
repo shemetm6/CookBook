@@ -9,5 +9,5 @@ public enum QuantityUnit
     Kilograms,
     Teaspoons,
     Tablespoons,
-    Units
+    Units,
 }
