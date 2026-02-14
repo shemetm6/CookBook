@@ -32,9 +32,19 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         _logger = logger;
     }
 
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) 
+    {
+        _dbContextSettings = null!;
+        _environment = null!;
+        _logger = null!;
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
+
+        if (_dbContextSettings is null)
+            return;
 
         optionsBuilder.UseNpgsql(_dbContextSettings.ConnectionString);
         optionsBuilder.LogTo(Console.WriteLine, LogLevel.Debug);

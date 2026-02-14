@@ -24,6 +24,10 @@ public class UserMappingProfile : Profile
             .ForCtorParam(nameof(ListOfUsers.Users),
             opt => opt.MapFrom(src => src.ToList()));
 
-        CreateMap<UpdateUserDto, User>();
+        CreateMap<UpdateUserDto, User>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Password, opt => opt.Ignore())
+            .ForMember(dest => dest.Recipes, opt => opt.Ignore())
+            .ForMember(dest => dest.Ratings, opt => opt.Ignore());
     }
 }
