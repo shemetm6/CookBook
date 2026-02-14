@@ -29,14 +29,29 @@ public class RecipeMappingProfile : Profile
         CreateMap<IEnumerable<Recipe>, ListOfRecipes>()
             .ForCtorParam(nameof(ListOfRecipes.Recipes), opt => opt.MapFrom(src => src.ToList()));
 
-        CreateMap<IngredientInRecipeCreateVm, IngredientInRecipe>();
+        CreateMap<IngredientInRecipeCreateVm, IngredientInRecipe>()
+            .ForMember(dest => dest.RecipeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Recipe, opt => opt.Ignore())
+            .ForMember(dest => dest.Ingredient, opt => opt.Ignore());
 
         CreateMap<CreateRecipeDto, Recipe>()
-            .ForMember(dest => dest.CookTime, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CookTime, opt => opt.Ignore())
+            .ForMember(dest => dest.Ratings, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore());
 
         CreateMap<UpdateRecipeDto, Recipe>()
-            .ForMember(dest => dest.CookTime, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CookTime, opt => opt.Ignore())
+            .ForMember(dest => dest.Ratings, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore());
 
-        CreateMap<RateRecipeDto, Rating>();
+        CreateMap<RateRecipeDto, Rating>()
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore())
+            .ForMember(dest => dest.RecipeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Recipe, opt => opt.Ignore());
     }
 }

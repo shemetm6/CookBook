@@ -19,6 +19,8 @@ public class IngredientMappingProfile : Profile
             .ForCtorParam(nameof(ListOfIngredients.Ingredients),
             src => src.MapFrom(src => src.ToList()));
 
-        CreateMap<CreateIngredientDto, Ingredient>();
+        CreateMap<CreateIngredientDto, Ingredient>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Recipes, opt => opt.Ignore());
     }
 }

@@ -1,11 +1,12 @@
-﻿using CookBook.Contracts;
-using CookBook.Abstractions;
-using CookBook.Models;
-using CookBook.Exceptions;
-using CookBook.Enums;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using CookBook.Abstractions;
+using CookBook.Contracts;
+using CookBook.Enums;
+using CookBook.Exceptions;
+using CookBook.Migrations;
+using CookBook.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CookBook.Services;
 
@@ -213,6 +214,13 @@ public class RecipeService : IRecipeService
         )
     {
         _logger.LogDebug("Obtaining ingredients from the database: {@Ingredients}", ingredients);
+        
+        foreach (var ingredient in ingredients)
+        {
+            if (!Enum.IsDefined(typeof(QuantityUnit), ingredient.Units))
+                throw new ArgumentOutOfRangeException(nameof(ingredient.Units), ingredient.Units, $"Unsupported quantity unit!");
+        }
+        
         var dtoIngredientIds = ingredients
             .Select(i => i.IngredientId)
             .ToList();

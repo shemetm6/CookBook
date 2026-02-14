@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="CookBook.Tests/CookBook.Tests.csproj" Id="3695122f-2688-46af-ac41-2a3ed5096171" />
   <Project Path="CookBook/CookBook.csproj" />
 </Solution>
